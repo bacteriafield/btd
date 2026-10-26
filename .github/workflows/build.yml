@@ -1,0 +1,20 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - 'btd-v*'
+permissions:
+    contents: write
+
+jobs:
+    build-x86_64:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+            uses: actions/checkout@v4
+
+            - name: install deps
+            run: 
+            

@@ -10,8 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bacteriafield/btd/pkg"
 	"github.com/leonelquinteros/gotext"
+
+	"github.com/bacteriafield/btd/pkg"
 )
 
 // NoConfirm skips btd's yes/no questions and passes -y to dnf.
