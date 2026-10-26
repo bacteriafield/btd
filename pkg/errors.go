@@ -1,4 +1,4 @@
-package settings
+package pkg
 
 import "github.com/leonelquinteros/gotext"
 

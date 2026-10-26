@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bacteriafield/btd/pkg"
 	"github.com/leonelquinteros/gotext"
 )
 
@@ -101,7 +102,7 @@ func (c *Configuration) SetPrivilege() error {
 		}
 	}
 
-	return &ErrPrivilegeElevatorNotFound{confValue: c.SudoBin}
+	return &pkg.ErrPrivilegeElevatorNotFound{confValue: c.SudoBin}
 }
 
 func (c *Configuration) load(path string) {
