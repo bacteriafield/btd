@@ -1,0 +1,162 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: btd\n"
+"PO-Revision-Date: 2026-10-26 00:00+0000\n"
+"Last-Translator: machine translation, needs review by a native speaker\n"
+"Language-Team: none\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: main.go:309
+msgid "%[1]s is not in the enabled repositories; use owner/project/%[1]s to install it from Copr with -y"
+msgstr "%[1]s no és als repositoris habilitats; utilitzeu owner/project/%[1]s per instal·lar-lo des de Copr amb -y"
+
+#: main.go:439
+msgid "%s is a third-party Copr repository: once enabled, it can replace any package on your system."
+msgstr "%s és un repositori Copr de tercers: un cop habilitat, pot substituir qualsevol paquet del sistema."
+
+#: main.go:312
+msgid "%s is not in the enabled repositories, searching Copr..."
+msgstr "%s no és als repositoris habilitats, s'està cercant a Copr..."
+
+#: main.go:328
+msgid "Copr project to use: "
+msgstr "Projecte Copr a utilitzar: "
+
+#: main.go:186
+msgid "Copr search failed, showing the enabled repositories only: %s"
+msgstr "La cerca a Copr ha fallat, només es mostren els repositoris habilitats: %s"
+
+#: main.go:440
+msgid "Enable %s?"
+msgstr "Voleu habilitar %s?"
+
+#: main.go:364
+msgid "Package to install: "
+msgstr "Paquet a instal·lar: "
+
+#: main.go:243
+msgid "Packages to install (e.g. 1 2 3, 1-3): "
+msgstr "Paquets a instal·lar (p. ex. 1 2 3, 1-3): "
+
+#: main.go:167
+msgid "Searching the repositories and Copr..."
+msgstr "S'està cercant als repositoris i a Copr..."
+
+#: main.go:441
+msgid "aborted"
+msgstr "cancel·lat"
+
+#: main.go:103
+msgid "avoid running btd as root"
+msgstr "eviteu executar btd com a root"
+
+#: main.go:565
+msgid "error:"
+msgstr "error:"
+
+#: pkg/settings/config.go:116
+msgid "failed to read config file '%s': %s"
+msgstr "no s'ha pogut llegir el fitxer de configuració '%s': %s"
+
+#: main.go:469
+msgid "flag %s requires a value"
+msgstr "l'opció %s necessita un valor"
+
+#: pkg/menu/menu.go:53
+msgid "invalid selection: %s"
+msgstr "selecció no vàlida: %s"
+
+#: main.go:356
+msgid "no package named %s in %s"
+msgstr "no hi ha cap paquet anomenat %s a %s"
+
+#: main.go:224
+#: main.go:238
+msgid "no packages found"
+msgstr "no s'ha trobat cap paquet"
+
+#: pkg/settings/errors.go:10
+msgid "no privilege elevator found (tried %s, sudo, run0, doas and pkexec)"
+msgstr "no s'ha trobat cap eina d'elevació de privilegis (s'ha provat %s, sudo, run0, doas i pkexec)"
+
+#: main.go:164
+msgid "no search terms given"
+msgstr "no s'ha indicat cap terme de cerca"
+
+#: main.go:96
+msgid "panic: %v"
+msgstr "pànic: %v"
+
+#: main.go:422
+msgid "pick exactly one number"
+msgstr "trieu exactament un número"
+
+#: main.go:318
+msgid "target not found: %s"
+msgstr "no s'ha trobat l'objectiu: %s"
+
+#: pkg/copr/copr.go:109
+msgid "unsupported system: no REDHAT_SUPPORT_PRODUCT_VERSION in /etc/os-release"
+msgstr "sistema no compatible: falta REDHAT_SUPPORT_PRODUCT_VERSION a /etc/os-release"
+
+#: main.go:532
+msgid ""
+"usage: btd [command] [options] [targets]\n"
+"\n"
+"commands:\n"
+"  btd                        upgrade the system\n"
+"  btd <term>                 search official repos and Copr, then pick what to install\n"
+"  btd install|in|-i <pkg>    install from official repos, falling back to Copr\n"
+"  btd install owner/project/pkg\n"
+"                             install pkg from that Copr project\n"
+"  btd search|se|-s <term>    search official repos and Copr\n"
+"  btd upgrade|up|-u          upgrade packages\n"
+"  btd remove|rm|-r <pkg>     remove packages\n"
+"  btd <dnf command>          any other dnf5 command is passed through\n"
+"\n"
+"options:\n"
+"  -h, --help                 show this help\n"
+"  --version                  show btd's version\n"
+"  -y, --assumeyes            answer yes to btd and dnf questions\n"
+"  --save                     save the given options to the config file\n"
+"  --copr-url <url>           Copr server\n"
+"  --dnf-bin <path>           dnf5 binary\n"
+"  --sudo-bin <path>          privilege elevator (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       flags for the privilege elevator\n"
+"  --[no-]bottom-up           show the best match last, next to the prompt\n"
+"  --[no-]single-line-results show each result on one line\n"
+"  --[no-]debug               print the commands and URLs btd runs\n"
+msgstr ""
+"ús: btd [command] [options] [targets]\n"
+"\n"
+"ordres:\n"
+"  btd                        actualitza el sistema\n"
+"  btd <term>                 cerca als repositoris oficials i a Copr, i tria què instal·lar\n"
+"  btd install|in|-i <pkg>    instal·la des dels repositoris oficials, recorrent a Copr\n"
+"  btd install owner/project/pkg\n"
+"                             instal·la pkg des d'aquest projecte Copr\n"
+"  btd search|se|-s <term>    cerca als repositoris oficials i a Copr\n"
+"  btd upgrade|up|-u          actualitza paquets\n"
+"  btd remove|rm|-r <pkg>     elimina paquets\n"
+"  btd <dnf command>          qualsevol altra ordre de dnf5 es passa directament\n"
+"\n"
+"opcions:\n"
+"  -h, --help                 mostra aquesta ajuda\n"
+"  --version                  mostra la versió de btd\n"
+"  -y, --assumeyes            respon sí a les preguntes de btd i dnf\n"
+"  --save                     desa les opcions indicades al fitxer de configuració\n"
+"  --copr-url <url>           servidor Copr\n"
+"  --dnf-bin <path>           binari de dnf5\n"
+"  --sudo-bin <path>          eina d'elevació de privilegis (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       opcions de l'eina d'elevació de privilegis\n"
+"  --[no-]bottom-up           mostra la millor coincidència al final, al costat de l'indicador\n"
+"  --[no-]single-line-results mostra cada resultat en una línia\n"
+"  --[no-]debug               mostra les ordres i URL que executa btd\n"
+
+#: main.go:561
+msgid "warning:"
+msgstr "avís:"

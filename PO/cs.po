@@ -1,0 +1,162 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: btd\n"
+"PO-Revision-Date: 2026-10-26 00:00+0000\n"
+"Last-Translator: machine translation, needs review by a native speaker\n"
+"Language-Team: none\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#: main.go:309
+msgid "%[1]s is not in the enabled repositories; use owner/project/%[1]s to install it from Copr with -y"
+msgstr "%[1]s není v povolených repozitářích; použijte owner/project/%[1]s pro instalaci z Copr s -y"
+
+#: main.go:439
+msgid "%s is a third-party Copr repository: once enabled, it can replace any package on your system."
+msgstr "%s je repozitář Copr třetí strany: po povolení může nahradit jakýkoli balíček ve vašem systému."
+
+#: main.go:312
+msgid "%s is not in the enabled repositories, searching Copr..."
+msgstr "%s není v povolených repozitářích, prohledává se Copr..."
+
+#: main.go:328
+msgid "Copr project to use: "
+msgstr "Projekt Copr k použití: "
+
+#: main.go:186
+msgid "Copr search failed, showing the enabled repositories only: %s"
+msgstr "Hledání v Copr selhalo, zobrazují se pouze povolené repozitáře: %s"
+
+#: main.go:440
+msgid "Enable %s?"
+msgstr "Povolit %s?"
+
+#: main.go:364
+msgid "Package to install: "
+msgstr "Balíček k instalaci: "
+
+#: main.go:243
+msgid "Packages to install (e.g. 1 2 3, 1-3): "
+msgstr "Balíčky k instalaci (např. 1 2 3, 1-3): "
+
+#: main.go:167
+msgid "Searching the repositories and Copr..."
+msgstr "Prohledávají se repozitáře a Copr..."
+
+#: main.go:441
+msgid "aborted"
+msgstr "přerušeno"
+
+#: main.go:103
+msgid "avoid running btd as root"
+msgstr "nespouštějte btd jako root"
+
+#: main.go:565
+msgid "error:"
+msgstr "chyba:"
+
+#: pkg/settings/config.go:116
+msgid "failed to read config file '%s': %s"
+msgstr "nelze načíst konfigurační soubor '%s': %s"
+
+#: main.go:469
+msgid "flag %s requires a value"
+msgstr "přepínač %s vyžaduje hodnotu"
+
+#: pkg/menu/menu.go:53
+msgid "invalid selection: %s"
+msgstr "neplatný výběr: %s"
+
+#: main.go:356
+msgid "no package named %s in %s"
+msgstr "žádný balíček s názvem %s v %s"
+
+#: main.go:224
+#: main.go:238
+msgid "no packages found"
+msgstr "nebyly nalezeny žádné balíčky"
+
+#: pkg/settings/errors.go:10
+msgid "no privilege elevator found (tried %s, sudo, run0, doas and pkexec)"
+msgstr "nebyl nalezen žádný nástroj pro zvýšení oprávnění (zkoušeno %s, sudo, run0, doas a pkexec)"
+
+#: main.go:164
+msgid "no search terms given"
+msgstr "nebyly zadány hledané výrazy"
+
+#: main.go:96
+msgid "panic: %v"
+msgstr "panika: %v"
+
+#: main.go:422
+msgid "pick exactly one number"
+msgstr "vyberte právě jedno číslo"
+
+#: main.go:318
+msgid "target not found: %s"
+msgstr "cíl nenalezen: %s"
+
+#: pkg/copr/copr.go:109
+msgid "unsupported system: no REDHAT_SUPPORT_PRODUCT_VERSION in /etc/os-release"
+msgstr "nepodporovaný systém: v /etc/os-release chybí REDHAT_SUPPORT_PRODUCT_VERSION"
+
+#: main.go:532
+msgid ""
+"usage: btd [command] [options] [targets]\n"
+"\n"
+"commands:\n"
+"  btd                        upgrade the system\n"
+"  btd <term>                 search official repos and Copr, then pick what to install\n"
+"  btd install|in|-i <pkg>    install from official repos, falling back to Copr\n"
+"  btd install owner/project/pkg\n"
+"                             install pkg from that Copr project\n"
+"  btd search|se|-s <term>    search official repos and Copr\n"
+"  btd upgrade|up|-u          upgrade packages\n"
+"  btd remove|rm|-r <pkg>     remove packages\n"
+"  btd <dnf command>          any other dnf5 command is passed through\n"
+"\n"
+"options:\n"
+"  -h, --help                 show this help\n"
+"  --version                  show btd's version\n"
+"  -y, --assumeyes            answer yes to btd and dnf questions\n"
+"  --save                     save the given options to the config file\n"
+"  --copr-url <url>           Copr server\n"
+"  --dnf-bin <path>           dnf5 binary\n"
+"  --sudo-bin <path>          privilege elevator (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       flags for the privilege elevator\n"
+"  --[no-]bottom-up           show the best match last, next to the prompt\n"
+"  --[no-]single-line-results show each result on one line\n"
+"  --[no-]debug               print the commands and URLs btd runs\n"
+msgstr ""
+"použití: btd [command] [options] [targets]\n"
+"\n"
+"příkazy:\n"
+"  btd                        aktualizuje systém\n"
+"  btd <term>                 prohledá oficiální repozitáře a Copr a nechá vybrat, co nainstalovat\n"
+"  btd install|in|-i <pkg>    instaluje z oficiálních repozitářů, jinak z Copr\n"
+"  btd install owner/project/pkg\n"
+"                             nainstaluje pkg z daného projektu Copr\n"
+"  btd search|se|-s <term>    prohledá oficiální repozitáře a Copr\n"
+"  btd upgrade|up|-u          aktualizuje balíčky\n"
+"  btd remove|rm|-r <pkg>     odstraní balíčky\n"
+"  btd <dnf command>          jakýkoli jiný příkaz dnf5 se předá dál\n"
+"\n"
+"přepínače:\n"
+"  -h, --help                 zobrazí tuto nápovědu\n"
+"  --version                  zobrazí verzi btd\n"
+"  -y, --assumeyes            odpoví ano na otázky btd a dnf\n"
+"  --save                     uloží zadané přepínače do konfiguračního souboru\n"
+"  --copr-url <url>           server Copr\n"
+"  --dnf-bin <path>           program dnf5\n"
+"  --sudo-bin <path>          nástroj pro zvýšení oprávnění (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       přepínače nástroje pro zvýšení oprávnění\n"
+"  --[no-]bottom-up           zobrazí nejlepší shodu jako poslední, u výzvy\n"
+"  --[no-]single-line-results zobrazí každý výsledek na jednom řádku\n"
+"  --[no-]debug               vypíše příkazy a URL, které btd spouští\n"
+
+#: main.go:561
+msgid "warning:"
+msgstr "varování:"

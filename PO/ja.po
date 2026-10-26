@@ -1,0 +1,162 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: btd\n"
+"PO-Revision-Date: 2026-10-26 00:00+0000\n"
+"Last-Translator: machine translation, needs review by a native speaker\n"
+"Language-Team: none\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: main.go:309
+msgid "%[1]s is not in the enabled repositories; use owner/project/%[1]s to install it from Copr with -y"
+msgstr "%[1]s は有効なリポジトリにありません。-y で Copr からインストールするには owner/project/%[1]s を使用してください"
+
+#: main.go:439
+msgid "%s is a third-party Copr repository: once enabled, it can replace any package on your system."
+msgstr "%s はサードパーティの Copr リポジトリです。有効にすると、システム上のどのパッケージでも置き換えられる可能性があります。"
+
+#: main.go:312
+msgid "%s is not in the enabled repositories, searching Copr..."
+msgstr "%s は有効なリポジトリにありません。Copr を検索しています..."
+
+#: main.go:328
+msgid "Copr project to use: "
+msgstr "使用する Copr プロジェクト: "
+
+#: main.go:186
+msgid "Copr search failed, showing the enabled repositories only: %s"
+msgstr "Copr の検索に失敗しました。有効なリポジトリのみを表示します: %s"
+
+#: main.go:440
+msgid "Enable %s?"
+msgstr "%s を有効にしますか?"
+
+#: main.go:364
+msgid "Package to install: "
+msgstr "インストールするパッケージ: "
+
+#: main.go:243
+msgid "Packages to install (e.g. 1 2 3, 1-3): "
+msgstr "インストールするパッケージ (例: 1 2 3, 1-3): "
+
+#: main.go:167
+msgid "Searching the repositories and Copr..."
+msgstr "リポジトリと Copr を検索しています..."
+
+#: main.go:441
+msgid "aborted"
+msgstr "中止しました"
+
+#: main.go:103
+msgid "avoid running btd as root"
+msgstr "btd を root で実行しないでください"
+
+#: main.go:565
+msgid "error:"
+msgstr "エラー:"
+
+#: pkg/settings/config.go:116
+msgid "failed to read config file '%s': %s"
+msgstr "設定ファイル '%s' を読み込めませんでした: %s"
+
+#: main.go:469
+msgid "flag %s requires a value"
+msgstr "フラグ %s には値が必要です"
+
+#: pkg/menu/menu.go:53
+msgid "invalid selection: %s"
+msgstr "無効な選択です: %s"
+
+#: main.go:356
+msgid "no package named %s in %s"
+msgstr "%s という名前のパッケージは %s にありません"
+
+#: main.go:224
+#: main.go:238
+msgid "no packages found"
+msgstr "パッケージが見つかりません"
+
+#: pkg/settings/errors.go:10
+msgid "no privilege elevator found (tried %s, sudo, run0, doas and pkexec)"
+msgstr "権限昇格ツールが見つかりません (%s, sudo, run0, doas, pkexec を試しました)"
+
+#: main.go:164
+msgid "no search terms given"
+msgstr "検索語が指定されていません"
+
+#: main.go:96
+msgid "panic: %v"
+msgstr "パニック: %v"
+
+#: main.go:422
+msgid "pick exactly one number"
+msgstr "番号を 1 つだけ選んでください"
+
+#: main.go:318
+msgid "target not found: %s"
+msgstr "対象が見つかりません: %s"
+
+#: pkg/copr/copr.go:109
+msgid "unsupported system: no REDHAT_SUPPORT_PRODUCT_VERSION in /etc/os-release"
+msgstr "サポートされていないシステムです: /etc/os-release に REDHAT_SUPPORT_PRODUCT_VERSION がありません"
+
+#: main.go:532
+msgid ""
+"usage: btd [command] [options] [targets]\n"
+"\n"
+"commands:\n"
+"  btd                        upgrade the system\n"
+"  btd <term>                 search official repos and Copr, then pick what to install\n"
+"  btd install|in|-i <pkg>    install from official repos, falling back to Copr\n"
+"  btd install owner/project/pkg\n"
+"                             install pkg from that Copr project\n"
+"  btd search|se|-s <term>    search official repos and Copr\n"
+"  btd upgrade|up|-u          upgrade packages\n"
+"  btd remove|rm|-r <pkg>     remove packages\n"
+"  btd <dnf command>          any other dnf5 command is passed through\n"
+"\n"
+"options:\n"
+"  -h, --help                 show this help\n"
+"  --version                  show btd's version\n"
+"  -y, --assumeyes            answer yes to btd and dnf questions\n"
+"  --save                     save the given options to the config file\n"
+"  --copr-url <url>           Copr server\n"
+"  --dnf-bin <path>           dnf5 binary\n"
+"  --sudo-bin <path>          privilege elevator (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       flags for the privilege elevator\n"
+"  --[no-]bottom-up           show the best match last, next to the prompt\n"
+"  --[no-]single-line-results show each result on one line\n"
+"  --[no-]debug               print the commands and URLs btd runs\n"
+msgstr ""
+"使い方: btd [command] [options] [targets]\n"
+"\n"
+"コマンド:\n"
+"  btd                        システムをアップグレードします\n"
+"  btd <term>                 公式リポジトリと Copr を検索し、インストールするものを選びます\n"
+"  btd install|in|-i <pkg>    公式リポジトリからインストールし、なければ Copr を使います\n"
+"  btd install owner/project/pkg\n"
+"                             その Copr プロジェクトから pkg をインストールします\n"
+"  btd search|se|-s <term>    公式リポジトリと Copr を検索します\n"
+"  btd upgrade|up|-u          パッケージをアップグレードします\n"
+"  btd remove|rm|-r <pkg>     パッケージを削除します\n"
+"  btd <dnf command>          その他の dnf5 コマンドはそのまま渡されます\n"
+"\n"
+"オプション:\n"
+"  -h, --help                 このヘルプを表示します\n"
+"  --version                  btd のバージョンを表示します\n"
+"  -y, --assumeyes            btd と dnf の質問にすべて「はい」と答えます\n"
+"  --save                     指定したオプションを設定ファイルに保存します\n"
+"  --copr-url <url>           Copr サーバー\n"
+"  --dnf-bin <path>           dnf5 の実行ファイル\n"
+"  --sudo-bin <path>          権限昇格ツール (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       権限昇格ツールのフラグ\n"
+"  --[no-]bottom-up           最も一致する結果を最後、プロンプトのすぐ上に表示します\n"
+"  --[no-]single-line-results 各結果を 1 行で表示します\n"
+"  --[no-]debug               btd が実行するコマンドと URL を表示します\n"
+
+#: main.go:561
+msgid "warning:"
+msgstr "警告:"

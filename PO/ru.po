@@ -1,0 +1,162 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: btd\n"
+"PO-Revision-Date: 2026-10-26 00:00+0000\n"
+"Last-Translator: machine translation, needs review by a native speaker\n"
+"Language-Team: none\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: main.go:309
+msgid "%[1]s is not in the enabled repositories; use owner/project/%[1]s to install it from Copr with -y"
+msgstr "%[1]s отсутствует во включённых репозиториях; используйте owner/project/%[1]s, чтобы установить его из Copr с -y"
+
+#: main.go:439
+msgid "%s is a third-party Copr repository: once enabled, it can replace any package on your system."
+msgstr "%s — сторонний репозиторий Copr: после включения он может заменить любой пакет в вашей системе."
+
+#: main.go:312
+msgid "%s is not in the enabled repositories, searching Copr..."
+msgstr "%s отсутствует во включённых репозиториях, поиск в Copr..."
+
+#: main.go:328
+msgid "Copr project to use: "
+msgstr "Проект Copr для использования: "
+
+#: main.go:186
+msgid "Copr search failed, showing the enabled repositories only: %s"
+msgstr "Поиск в Copr не удался, показаны только включённые репозитории: %s"
+
+#: main.go:440
+msgid "Enable %s?"
+msgstr "Включить %s?"
+
+#: main.go:364
+msgid "Package to install: "
+msgstr "Пакет для установки: "
+
+#: main.go:243
+msgid "Packages to install (e.g. 1 2 3, 1-3): "
+msgstr "Пакеты для установки (например, 1 2 3, 1-3): "
+
+#: main.go:167
+msgid "Searching the repositories and Copr..."
+msgstr "Поиск в репозиториях и Copr..."
+
+#: main.go:441
+msgid "aborted"
+msgstr "прервано"
+
+#: main.go:103
+msgid "avoid running btd as root"
+msgstr "не запускайте btd от имени root"
+
+#: main.go:565
+msgid "error:"
+msgstr "ошибка:"
+
+#: pkg/settings/config.go:116
+msgid "failed to read config file '%s': %s"
+msgstr "не удалось прочитать файл конфигурации '%s': %s"
+
+#: main.go:469
+msgid "flag %s requires a value"
+msgstr "параметру %s требуется значение"
+
+#: pkg/menu/menu.go:53
+msgid "invalid selection: %s"
+msgstr "неверный выбор: %s"
+
+#: main.go:356
+msgid "no package named %s in %s"
+msgstr "нет пакета с именем %s в %s"
+
+#: main.go:224
+#: main.go:238
+msgid "no packages found"
+msgstr "пакеты не найдены"
+
+#: pkg/settings/errors.go:10
+msgid "no privilege elevator found (tried %s, sudo, run0, doas and pkexec)"
+msgstr "не найдено средство повышения привилегий (проверены %s, sudo, run0, doas и pkexec)"
+
+#: main.go:164
+msgid "no search terms given"
+msgstr "не заданы условия поиска"
+
+#: main.go:96
+msgid "panic: %v"
+msgstr "паника: %v"
+
+#: main.go:422
+msgid "pick exactly one number"
+msgstr "выберите ровно один номер"
+
+#: main.go:318
+msgid "target not found: %s"
+msgstr "цель не найдена: %s"
+
+#: pkg/copr/copr.go:109
+msgid "unsupported system: no REDHAT_SUPPORT_PRODUCT_VERSION in /etc/os-release"
+msgstr "неподдерживаемая система: в /etc/os-release нет REDHAT_SUPPORT_PRODUCT_VERSION"
+
+#: main.go:532
+msgid ""
+"usage: btd [command] [options] [targets]\n"
+"\n"
+"commands:\n"
+"  btd                        upgrade the system\n"
+"  btd <term>                 search official repos and Copr, then pick what to install\n"
+"  btd install|in|-i <pkg>    install from official repos, falling back to Copr\n"
+"  btd install owner/project/pkg\n"
+"                             install pkg from that Copr project\n"
+"  btd search|se|-s <term>    search official repos and Copr\n"
+"  btd upgrade|up|-u          upgrade packages\n"
+"  btd remove|rm|-r <pkg>     remove packages\n"
+"  btd <dnf command>          any other dnf5 command is passed through\n"
+"\n"
+"options:\n"
+"  -h, --help                 show this help\n"
+"  --version                  show btd's version\n"
+"  -y, --assumeyes            answer yes to btd and dnf questions\n"
+"  --save                     save the given options to the config file\n"
+"  --copr-url <url>           Copr server\n"
+"  --dnf-bin <path>           dnf5 binary\n"
+"  --sudo-bin <path>          privilege elevator (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       flags for the privilege elevator\n"
+"  --[no-]bottom-up           show the best match last, next to the prompt\n"
+"  --[no-]single-line-results show each result on one line\n"
+"  --[no-]debug               print the commands and URLs btd runs\n"
+msgstr ""
+"использование: btd [command] [options] [targets]\n"
+"\n"
+"команды:\n"
+"  btd                        обновляет систему\n"
+"  btd <term>                 ищет в официальных репозиториях и Copr, затем позволяет выбрать, что установить\n"
+"  btd install|in|-i <pkg>    устанавливает из официальных репозиториев, иначе из Copr\n"
+"  btd install owner/project/pkg\n"
+"                             устанавливает pkg из этого проекта Copr\n"
+"  btd search|se|-s <term>    ищет в официальных репозиториях и Copr\n"
+"  btd upgrade|up|-u          обновляет пакеты\n"
+"  btd remove|rm|-r <pkg>     удаляет пакеты\n"
+"  btd <dnf command>          любая другая команда dnf5 передаётся как есть\n"
+"\n"
+"параметры:\n"
+"  -h, --help                 показывает эту справку\n"
+"  --version                  показывает версию btd\n"
+"  -y, --assumeyes            отвечает «да» на вопросы btd и dnf\n"
+"  --save                     сохраняет указанные параметры в файл конфигурации\n"
+"  --copr-url <url>           сервер Copr\n"
+"  --dnf-bin <path>           исполняемый файл dnf5\n"
+"  --sudo-bin <path>          средство повышения привилегий (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       флаги средства повышения привилегий\n"
+"  --[no-]bottom-up           показывает лучшее совпадение последним, рядом с приглашением\n"
+"  --[no-]single-line-results показывает каждый результат в одной строке\n"
+"  --[no-]debug               выводит команды и URL, которые запускает btd\n"
+
+#: main.go:561
+msgid "warning:"
+msgstr "предупреждение:"

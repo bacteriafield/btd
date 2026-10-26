@@ -1,0 +1,162 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: btd\n"
+"PO-Revision-Date: 2026-10-26 00:00+0000\n"
+"Last-Translator: machine translation, needs review by a native speaker\n"
+"Language-Team: none\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: main.go:309
+msgid "%[1]s is not in the enabled repositories; use owner/project/%[1]s to install it from Copr with -y"
+msgstr "%[1]s 不在已啟用的軟體庫中；若要使用 -y 從 Copr 安裝，請使用 owner/project/%[1]s"
+
+#: main.go:439
+msgid "%s is a third-party Copr repository: once enabled, it can replace any package on your system."
+msgstr "%s 是第三方 Copr 軟體庫：啟用後，它可以取代系統中的任何套件。"
+
+#: main.go:312
+msgid "%s is not in the enabled repositories, searching Copr..."
+msgstr "%s 不在已啟用的軟體庫中，正在搜尋 Copr..."
+
+#: main.go:328
+msgid "Copr project to use: "
+msgstr "要使用的 Copr 專案："
+
+#: main.go:186
+msgid "Copr search failed, showing the enabled repositories only: %s"
+msgstr "Copr 搜尋失敗，僅顯示已啟用的軟體庫：%s"
+
+#: main.go:440
+msgid "Enable %s?"
+msgstr "要啟用 %s 嗎？"
+
+#: main.go:364
+msgid "Package to install: "
+msgstr "要安裝的套件："
+
+#: main.go:243
+msgid "Packages to install (e.g. 1 2 3, 1-3): "
+msgstr "要安裝的套件（例如 1 2 3, 1-3）："
+
+#: main.go:167
+msgid "Searching the repositories and Copr..."
+msgstr "正在搜尋軟體庫和 Copr..."
+
+#: main.go:441
+msgid "aborted"
+msgstr "已中止"
+
+#: main.go:103
+msgid "avoid running btd as root"
+msgstr "請避免以 root 身分執行 btd"
+
+#: main.go:565
+msgid "error:"
+msgstr "錯誤："
+
+#: pkg/settings/config.go:116
+msgid "failed to read config file '%s': %s"
+msgstr "無法讀取設定檔 '%s'：%s"
+
+#: main.go:469
+msgid "flag %s requires a value"
+msgstr "選項 %s 需要一個值"
+
+#: pkg/menu/menu.go:53
+msgid "invalid selection: %s"
+msgstr "無效的選擇：%s"
+
+#: main.go:356
+msgid "no package named %s in %s"
+msgstr "%[2]s 中沒有名為 %[1]s 的套件"
+
+#: main.go:224
+#: main.go:238
+msgid "no packages found"
+msgstr "找不到套件"
+
+#: pkg/settings/errors.go:10
+msgid "no privilege elevator found (tried %s, sudo, run0, doas and pkexec)"
+msgstr "找不到權限提升工具（已嘗試 %s、sudo、run0、doas 和 pkexec）"
+
+#: main.go:164
+msgid "no search terms given"
+msgstr "未提供搜尋關鍵字"
+
+#: main.go:96
+msgid "panic: %v"
+msgstr "嚴重錯誤：%v"
+
+#: main.go:422
+msgid "pick exactly one number"
+msgstr "請只選擇一個編號"
+
+#: main.go:318
+msgid "target not found: %s"
+msgstr "找不到目標：%s"
+
+#: pkg/copr/copr.go:109
+msgid "unsupported system: no REDHAT_SUPPORT_PRODUCT_VERSION in /etc/os-release"
+msgstr "不支援的系統：/etc/os-release 中缺少 REDHAT_SUPPORT_PRODUCT_VERSION"
+
+#: main.go:532
+msgid ""
+"usage: btd [command] [options] [targets]\n"
+"\n"
+"commands:\n"
+"  btd                        upgrade the system\n"
+"  btd <term>                 search official repos and Copr, then pick what to install\n"
+"  btd install|in|-i <pkg>    install from official repos, falling back to Copr\n"
+"  btd install owner/project/pkg\n"
+"                             install pkg from that Copr project\n"
+"  btd search|se|-s <term>    search official repos and Copr\n"
+"  btd upgrade|up|-u          upgrade packages\n"
+"  btd remove|rm|-r <pkg>     remove packages\n"
+"  btd <dnf command>          any other dnf5 command is passed through\n"
+"\n"
+"options:\n"
+"  -h, --help                 show this help\n"
+"  --version                  show btd's version\n"
+"  -y, --assumeyes            answer yes to btd and dnf questions\n"
+"  --save                     save the given options to the config file\n"
+"  --copr-url <url>           Copr server\n"
+"  --dnf-bin <path>           dnf5 binary\n"
+"  --sudo-bin <path>          privilege elevator (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       flags for the privilege elevator\n"
+"  --[no-]bottom-up           show the best match last, next to the prompt\n"
+"  --[no-]single-line-results show each result on one line\n"
+"  --[no-]debug               print the commands and URLs btd runs\n"
+msgstr ""
+"用法： btd [command] [options] [targets]\n"
+"\n"
+"命令：\n"
+"  btd                        升級系統\n"
+"  btd <term>                 搜尋官方軟體庫和 Copr，然後選擇要安裝的項目\n"
+"  btd install|in|-i <pkg>    從官方軟體庫安裝，找不到時改用 Copr\n"
+"  btd install owner/project/pkg\n"
+"                             從該 Copr 專案安裝 pkg\n"
+"  btd search|se|-s <term>    搜尋官方軟體庫和 Copr\n"
+"  btd upgrade|up|-u          升級套件\n"
+"  btd remove|rm|-r <pkg>     移除套件\n"
+"  btd <dnf command>          其他任何 dnf5 命令都會原樣傳遞\n"
+"\n"
+"選項：\n"
+"  -h, --help                 顯示此說明\n"
+"  --version                  顯示 btd 的版本\n"
+"  -y, --assumeyes            對 btd 和 dnf 的提問全部回答是\n"
+"  --save                     將指定的選項儲存到設定檔\n"
+"  --copr-url <url>           Copr 伺服器\n"
+"  --dnf-bin <path>           dnf5 執行檔\n"
+"  --sudo-bin <path>          權限提升工具（sudo、run0、doas、pkexec）\n"
+"  --sudo-flags <flags>       權限提升工具的參數\n"
+"  --[no-]bottom-up           將最佳結果顯示在最後，緊鄰提示字元\n"
+"  --[no-]single-line-results 每個結果顯示為一行\n"
+"  --[no-]debug               印出 btd 執行的命令和 URL\n"
+
+#: main.go:561
+msgid "warning:"
+msgstr "警告："
