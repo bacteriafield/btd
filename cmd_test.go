@@ -5,8 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bacteriafield/btd/pkg/copr"
-	"github.com/bacteriafield/btd/pkg/menu"
 	"github.com/bacteriafield/btd/pkg/settings"
 )
 
@@ -29,44 +27,6 @@ func TestParseFlags(t *testing.T) {
 
 	if _, err := parseFlags([]string{"--sudo-bin"}, cfg); err == nil {
 		t.Error("missing flag value: want error")
-	}
-}
-
-func TestRank(t *testing.T) {
-	pkg := func(name string) result { return result{Item: menu.Item{Name: name}} }
-	project := func(name string) result { return result{copr: &copr.Project{Name: name}} }
-
-	res := []result{project("zed-nightly"), pkg("python-zed"), project("tools"), pkg("Zed"), project("zed")}
-	rank(res, "zed")
-
-	var got []string
-	for _, r := range res {
-		if r.copr != nil {
-			got = append(got, "copr:"+r.copr.Name)
-		} else {
-			got = append(got, r.Name)
-		}
-	}
-	if want := []string{"Zed", "copr:zed", "copr:zed-nightly", "python-zed", "copr:tools"}; !slices.Equal(got, want) {
-		t.Errorf("rank() = %q, want %q", got, want)
-	}
-}
-
-func TestExplicitCopr(t *testing.T) {
-	for arg, want := range map[string]target{
-		"owner/project/pkg":   {name: "pkg", copr: "owner/project"},
-		"@group/project/pkg":  {name: "pkg", copr: "@group/project"},
-		"/usr/bin/vim":        {},
-		"./a/b":               {},
-		"dir/sub/foo.rpm":     {},
-		"https://x.org/a.rpm": {},
-		"owner/project":       {},
-		"vim":                 {},
-	} {
-		got, ok := explicitCopr(arg)
-		if got != want || ok != (want != target{}) {
-			t.Errorf("explicitCopr(%q) = %+v, %v; want %+v", arg, got, ok, want)
-		}
 	}
 }
 

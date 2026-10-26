@@ -102,7 +102,7 @@ func (c *Configuration) SetPrivilege() error {
 		}
 	}
 
-	return &pkg.ErrPrivilegeElevatorNotFound{confValue: c.SudoBin}
+	return &pkg.ErrPrivilegeElevatorNotFound{ConfValue: c.SudoBin}
 }
 
 func (c *Configuration) load(path string) {
