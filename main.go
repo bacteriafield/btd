@@ -1,12 +1,14 @@
 package main
 
 import (
-	"context"
+	"fmt"
 	"os"
-	"os/signal"
+	"runtime/debug"
 	"strings"
 
 	"github.com/leonelquinteros/gotext"
+
+	"github.com/bacteriafield/btd/pkg/settings"
 )
 
 var (
@@ -20,42 +22,55 @@ func init() {
 	if envLocale := os.Getenv("LOCALE"); envLocale != "" {
 		locale = envLocale
 	}
-
-	if lc := os.Getenv("LANGUAGE"); lc != "" {
-		locales := strings.Split(lc, ":")
-		if len(locales) > 0 && locales[0] != "" {
-			gotext.Configure(locale, locales[0], "btd")
-		}
-	} else {
-		gotext.Configure(locale, "en", "btd")
-	}
+	gotext.Configure(locale, language(), "btd")
 }
 
-func newSignalContext() (context.Context, context.CancelFunc) { return signal.NotifyContext(context.Background(), os.Interrupt) }
+// language picks the UI language with gettext's precedence:
+// LANGUAGE, LC_ALL, LC_MESSAGES, then LANG.
+func language() string {
+	for _, env := range [...]string{"LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"} {
+		lang, _, _ := strings.Cut(os.Getenv(env), ":")
+		lang, _, _ = strings.Cut(lang, ".") // pt_BR.UTF-8 -> pt_BR
+		lang, _, _ = strings.Cut(lang, "@")
+		if lang != "" && lang != "C" && lang != "POSIX" {
+			return lang
+		}
+	}
+	return "en"
+}
 
 func main() {
-	fallbackLog := log.New(os.Stderr, "btd -> FallBack:  ", log.Lshortfile)
-	var (
-		err error
-		ctx, stop = newSignalContext()
-		ret = 0
-	)
-	defer stop()
+	os.Exit(run())
+}
 
+func run() (ret int) {
 	defer func() {
 		if rec := recover(); rec != nil {
-			fallbackLog.Errorf("Panic occured: %v", rec)
-			fallbackLog.Errorf("Stacktrace: %s", string(debug.Stack()))
+			fmt.Fprintln(os.Stderr, gotext.Get("panic: %v", rec))
+			fmt.Fprintln(os.Stderr, string(debug.Stack()))
 			ret = 1
 		}
-		os.Exit()
 	}()
 
-	init()
-
 	if os.Geteuid() == 0 {
-		fallbackLog.Warn("Running as root")
+		warn(gotext.Get("avoid running btd as root"))
 	}
 
-	//configPath := settings
+	configPath, err := settings.ConfigPath()
+	if err != nil {
+		return fail(err)
+	}
+	cfg := settings.NewConfig(configPath, btdVersion)
+	_ = cfg
+
+	return 0
+}
+
+func warn(msg string) {
+	fmt.Fprintln(os.Stderr, gotext.Get("warning:"), msg)
+}
+
+func fail(err error) int {
+	fmt.Fprintln(os.Stderr, gotext.Get("error:"), err)
+	return 1
 }

@@ -1,5 +1,5 @@
 module github.com/bacteriafield/btd
 
-go 1.27.0
+go 1.26
 
-require github.com/leonelquinteros/gotext v1.8.0 // indirect
+require github.com/leonelquinteros/gotext v1.7.2
