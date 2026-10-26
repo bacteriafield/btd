@@ -9,9 +9,11 @@ import (
 	"runtime/debug"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/leonelquinteros/gotext"
 
+	"github.com/bacteriafield/btd/pkg/copr"
 	"github.com/bacteriafield/btd/pkg/dnf"
 	"github.com/bacteriafield/btd/pkg/menu"
 	"github.com/bacteriafield/btd/pkg/settings"
@@ -146,34 +148,62 @@ func run() (ret int) {
 	return interactive(cfg, rest)
 }
 
-// result is a search hit from the enabled repositories.
+// result is a search hit: a package from the enabled repositories, or a
+// Copr project when copr is set.
 type result struct {
 	menu.Item
+	copr *copr.Project
 }
 
-// results searches the enabled repositories, exact name matches first.
+// results searches the enabled repositories and Copr; a Copr failure only
+// leaves its projects out.
 func results(cfg *settings.Configuration, terms []string) ([]result, error) {
 	if len(terms) == 0 {
 		return nil, errors.New(gotext.Get("no search terms given"))
 	}
 	query := strings.Join(terms, " ")
+	fmt.Fprintln(os.Stderr, gotext.Get("Searching the repositories and Copr..."))
 
+	// Copr is slow, so it runs while dnf searches.
+	var projects []copr.Project
+	var coprErr error
+	var wg sync.WaitGroup
+	wg.Go(func() { projects, coprErr = copr.Search(cfg, query) })
 	pkgs, err := dnf.Search(cfg, terms)
+	wg.Wait()
+
 	if err != nil {
 		return nil, err
 	}
-
 	var res []result
 	for _, p := range pkgs {
 		res = append(res, result{Item: menu.Item{Source: p.Repo, Name: p.Name, Version: p.EVR, Description: p.Summary}})
 	}
-	slices.SortStableFunc(res, func(a, b result) int { return score(a, query) - score(b, query) })
+
+	if coprErr != nil {
+		warn(gotext.Get("Copr search failed, showing the enabled repositories only: %s", coprErr))
+	}
+	for _, p := range projects {
+		res = append(res, result{Item: menu.Item{Source: "copr:" + p.FullName, Description: firstLine(p.Description)}, copr: &p})
+	}
+
+	rank(res, query)
 	return res, nil
+}
+
+// rank orders results by exact name, then name containing query, then the
+// rest; ties keep the enabled repositories before Copr.
+func rank(res []result, query string) {
+	slices.SortStableFunc(res, func(a, b result) int { return score(a, query) - score(b, query) })
 }
 
 // ponytail: naive name-match ranking; switch to a scored match if results feel off.
 func score(r result, query string) int {
-	name, query := strings.ToLower(r.Name), strings.ToLower(query)
+	name := r.Name
+	if r.copr != nil {
+		name = r.copr.Name
+	}
+	name, query = strings.ToLower(name), strings.ToLower(query)
 	switch {
 	case name == query:
 		return 0
@@ -218,9 +248,19 @@ func interactive(cfg *settings.Configuration, terms []string) int {
 
 	names := []string{"install"}
 	for _, i := range picked {
+		if res[i].copr != nil {
+			return fail(errors.New("installing from Copr is not wired yet"))
+		}
 		names = append(names, res[i].Name)
 	}
 	return exitCode(dnf.Run(cfg, true, names...))
+}
+
+// firstLine trims a Copr description, often paragraphs of markdown, to its
+// first line.
+func firstLine(s string) string {
+	line, _, _ := strings.Cut(strings.TrimSpace(s), "\n")
+	return strings.TrimSpace(line)
 }
 
 func printResults(cfg *settings.Configuration, res []result) {
