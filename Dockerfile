@@ -1,11 +1,11 @@
 # Fedora test box with btd and its translations:
 #   docker build -t btd . && docker run --rm -it btd
-FROM docker.io/library/golang:1.26 AS build
+FROM golang:1.26 AS build
 WORKDIR /src
 COPY . .
 RUN CGO_ENABLED=0 go build -o /btd .
 
-FROM registry.fedoraproject.org/fedora:latest
+FROM fedora:latest
 COPY --from=build /btd /usr/local/bin/btd
 COPY po /tmp/po
 # gotext reads .po files directly, so no msgfmt needed here.
