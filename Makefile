@@ -32,11 +32,11 @@ install: btd $(LANGS:%=po/%.mo)
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/btd $(LANGS:%=$(DESTDIR)$(LOCALEDIR)/%/LC_MESSAGES/btd.mo)
 
-// Regenerates po/btd.pot from the gotext.Get calls.
+## Regenerates po/btd.pot from the gotext.Get calls.
 pot:
 	go run github.com/leonelquinteros/gotext/cli/xgotext@v1.7.2 -pkg-tree . -out po -default btd
 
-// Fedora image with btd and its translations, for testing.
+## Fedora image with btd and its translations, for testing.
 docker:
 	docker build -t $(IMAGE) .
 
