@@ -1,0 +1,567 @@
+package main
+
+import (
+	"bufio"
+	"errors"
+	"fmt"
+	"os"
+	"os/exec"
+	"runtime/debug"
+	"slices"
+	"strings"
+	"sync"
+
+	"github.com/leonelquinteros/gotext"
+
+	"github.com/bacteriafield/btd/pkg/copr"
+	"github.com/bacteriafield/btd/pkg/dnf"
+	"github.com/bacteriafield/btd/pkg/menu"
+	"github.com/bacteriafield/btd/pkg/settings"
+)
+
+var (
+	// to be set on compile
+	btdVersion = "0.0.1"
+	// to be set on compile
+	locale = "/usr/share/locale"
+)
+
+// btdCommands maps btd's own commands and their aliases, dnf's aliases
+// included, so `btd in foo` still gets the Copr fallback.
+var btdCommands = map[string]string{
+	"install": "install", "in": "install", "-i": "install",
+	"search": "search", "se": "search", "-s": "search",
+	"upgrade": "upgrade", "up": "upgrade", "update": "upgrade", "-u": "upgrade",
+	"remove": "remove", "rm": "remove", "-r": "remove",
+	"-h": "help", "--help": "help",
+	"--version": "version",
+}
+
+// ponytail: dnf5 5.4 command list; a command added to dnf5 must be added
+// here too, otherwise `btd <command>` searches for it instead.
+var dnfCommands = map[string]bool{
+	"do": true, "distro-sync": true, "downgrade": true, "reinstall": true,
+	"debuginfo-install": true, "swap": true, "mark": true, "autoremove": true,
+	"provides": true, "replay": true, "check-upgrade": true, "check": true,
+	"leaves": true, "repoquery": true, "list": true, "info": true,
+	"group": true, "environment": true, "module": true, "history": true,
+	"repo": true, "advisory": true, "versionlock": true, "system-upgrade": true,
+	"offline-distrosync": true, "offline-upgrade": true, "offline": true,
+	"config-manager": true, "check-update": true, "dg": true, "dsync": true,
+	"grp": true, "if": true, "ls": true, "mc": true, "rei": true,
+	"repoinfo": true, "repolist": true, "rq": true, "updateinfo": true,
+	"upgrade-minimal": true, "clean": true, "download": true, "makecache": true,
+	"builddep": true, "build-dep": true, "changelog": true, "copr": true,
+	"needs-restarting": true, "repoclosure": true, "repomanage": true,
+	"reposync": true,
+}
+
+// readOnly are the dnf commands that run as the user; the rest need root.
+var readOnly = map[string]bool{
+	"list": true, "ls": true, "info": true, "if": true, "repoquery": true,
+	"rq": true, "provides": true, "check-upgrade": true, "check-update": true,
+	"check": true, "leaves": true, "changelog": true, "download": true,
+	"repoclosure": true, "needs-restarting": true, "repoinfo": true,
+	"repolist": true,
+}
+
+func init() {
+	if envLocale := os.Getenv("LOCALE"); envLocale != "" {
+		locale = envLocale
+	}
+	gotext.Configure(locale, language(), "btd")
+}
+
+// language picks the UI language with gettext's precedence:
+// LANGUAGE, LC_ALL, LC_MESSAGES, then LANG.
+func language() string {
+	for _, env := range [...]string{"LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"} {
+		lang, _, _ := strings.Cut(os.Getenv(env), ":")
+		lang, _, _ = strings.Cut(lang, ".") // pt_BR.UTF-8 -> pt_BR
+		lang, _, _ = strings.Cut(lang, "@")
+		if lang != "" && lang != "C" && lang != "POSIX" {
+			return lang
+		}
+	}
+	return "en"
+}
+
+func main() {
+	os.Exit(run())
+}
+
+func run() (ret int) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			fmt.Fprintln(os.Stderr, gotext.Get("panic: %v", rec))
+			fmt.Fprintln(os.Stderr, string(debug.Stack()))
+			ret = 1
+		}
+	}()
+
+	if os.Geteuid() == 0 {
+		warn(gotext.Get("avoid running btd as root"))
+	}
+
+	configPath, err := settings.ConfigPath()
+	if err != nil {
+		return fail(err)
+	}
+	cfg := settings.NewConfig(configPath, btdVersion)
+
+	rest, err := parseFlags(os.Args[1:], cfg)
+	if err != nil {
+		return fail(err)
+	}
+
+	if cfg.SaveConfig {
+		if err := cfg.Save(configPath); err != nil {
+			return fail(err)
+		}
+		if len(rest) == 0 {
+			return 0
+		}
+	}
+
+	if len(rest) == 0 {
+		return exitCode(dnf.Run(cfg, true, "upgrade"))
+	}
+
+	cmd, args := rest[0], rest[1:]
+	switch btdCommands[cmd] {
+	case "install":
+		return install(cfg, args)
+	case "search":
+		return search(cfg, args)
+	case "upgrade", "remove":
+		return exitCode(dnf.Run(cfg, true, append([]string{btdCommands[cmd]}, args...)...))
+	case "help":
+		fmt.Print(usage())
+		return 0
+	case "version":
+		fmt.Println("btd v" + btdVersion)
+		return 0
+	}
+
+	if dnfCommands[cmd] || strings.HasPrefix(cmd, "-") {
+		return exitCode(dnf.Run(cfg, needsRoot(rest), rest...))
+	}
+
+	return interactive(cfg, rest)
+}
+
+// result is a search hit: a package from the enabled repositories, or a
+// Copr project when copr is set.
+type result struct {
+	menu.Item
+	copr *copr.Project
+}
+
+// results searches the enabled repositories and Copr; a Copr failure only
+// leaves its projects out.
+func results(cfg *settings.Configuration, terms []string) ([]result, error) {
+	if len(terms) == 0 {
+		return nil, errors.New(gotext.Get("no search terms given"))
+	}
+	query := strings.Join(terms, " ")
+	fmt.Fprintln(os.Stderr, gotext.Get("Searching the repositories and Copr..."))
+
+	// Copr is slow, so it runs while dnf searches.
+	var projects []copr.Project
+	var coprErr error
+	var wg sync.WaitGroup
+	wg.Go(func() { projects, coprErr = copr.Search(cfg, query) })
+	pkgs, err := dnf.Search(cfg, terms)
+	wg.Wait()
+
+	if err != nil {
+		return nil, err
+	}
+	var res []result
+	for _, p := range pkgs {
+		res = append(res, result{Item: menu.Item{Source: p.Repo, Name: p.Name, Version: p.EVR, Description: p.Summary}})
+	}
+
+	if coprErr != nil {
+		warn(gotext.Get("Copr search failed, showing the enabled repositories only: %s", coprErr))
+	}
+	for _, p := range projects {
+		res = append(res, result{Item: menu.Item{Source: "copr:" + p.FullName, Description: firstLine(p.Description)}, copr: &p})
+	}
+
+	rank(res, query)
+	return res, nil
+}
+
+// rank orders results by exact name, then name containing query, then the
+// rest; ties keep the enabled repositories before Copr.
+func rank(res []result, query string) {
+	slices.SortStableFunc(res, func(a, b result) int { return score(a, query) - score(b, query) })
+}
+
+// ponytail: naive name-match ranking; switch to a scored match if results feel off.
+func score(r result, query string) int {
+	name := r.Name
+	if r.copr != nil {
+		name = r.copr.Name
+	}
+	name, query = strings.ToLower(name), strings.ToLower(query)
+	switch {
+	case name == query:
+		return 0
+	case strings.Contains(name, query):
+		return 1
+	}
+	return 2
+}
+
+func search(cfg *settings.Configuration, terms []string) int {
+	res, err := results(cfg, terms)
+	if err != nil {
+		return fail(err)
+	}
+	if len(res) == 0 {
+		fmt.Fprintln(os.Stderr, gotext.Get("no packages found"))
+		return 1
+	}
+	printResults(cfg, res)
+	return 0
+}
+
+// interactive is `btd <term>`: search, then install what the user picks.
+func interactive(cfg *settings.Configuration, terms []string) int {
+	res, err := results(cfg, terms)
+	if err != nil {
+		return fail(err)
+	}
+	if len(res) == 0 {
+		fmt.Fprintln(os.Stderr, gotext.Get("no packages found"))
+		return 1
+	}
+	printResults(cfg, res)
+
+	picked, err := menu.ParseSelection(ask(gotext.Get("Packages to install (e.g. 1 2 3, 1-3): ")), len(res))
+	if err != nil {
+		return fail(err)
+	}
+	if len(picked) == 0 {
+		return 0
+	}
+
+	var targets []target
+	for _, i := range picked {
+		if res[i].copr == nil {
+			targets = append(targets, target{name: res[i].Name})
+			continue
+		}
+		t, err := fromCopr(cfg, *res[i].copr, strings.Join(terms, " "))
+		if err != nil {
+			return fail(err)
+		}
+		targets = append(targets, t)
+	}
+	return installTargets(cfg, targets, nil)
+}
+
+// target is a spec for dnf install plus the Copr project, if any, to
+// enable before.
+type target struct {
+	name string
+	copr string // owner/project, empty for the enabled repositories
+}
+
+func install(cfg *settings.Configuration, args []string) int {
+	var targets []target
+	var flags []string
+	for _, arg := range args {
+		// ponytail: dnf options need the --opt=value form; a separate value is taken as a target
+		if strings.HasPrefix(arg, "-") {
+			flags = append(flags, arg)
+			continue
+		}
+		t, err := resolve(cfg, arg)
+		if err != nil {
+			return fail(err)
+		}
+		targets = append(targets, t)
+	}
+	return installTargets(cfg, targets, flags)
+}
+
+// resolve finds where arg comes from: an explicit owner/project/pkg, a path
+// or URL left to dnf, the enabled repositories, or a Copr project the user
+// picks.
+func resolve(cfg *settings.Configuration, arg string) (target, error) {
+	if t, ok := explicitCopr(arg); ok {
+		return t, confirmCopr(t.copr)
+	}
+	if strings.Contains(arg, "/") || strings.HasSuffix(arg, ".rpm") {
+		return target{name: arg}, nil
+	}
+
+	provided, err := dnf.Provided(cfg, arg)
+	if err != nil || provided {
+		return target{name: arg}, err
+	}
+
+	// -y never picks a third-party repository on its own.
+	if settings.NoConfirm {
+		return target{}, errors.New(gotext.Get("%[1]s is not in the enabled repositories; use owner/project/%[1]s to install it from Copr with -y", arg))
+	}
+
+	fmt.Fprintln(os.Stderr, gotext.Get("%s is not in the enabled repositories, searching Copr...", arg))
+	projects, err := copr.Search(cfg, arg)
+	if err != nil {
+		return target{}, err
+	}
+	if len(projects) == 0 {
+		return target{}, errors.New(gotext.Get("target not found: %s", arg))
+	}
+
+	res := make([]result, len(projects))
+	for i, p := range projects {
+		res[i] = result{Item: menu.Item{Source: "copr:" + p.FullName, Description: firstLine(p.Description)}, copr: &p}
+	}
+	rank(res, arg)
+	printResults(cfg, res)
+
+	i, err := pickOne(gotext.Get("Copr project to use: "), len(res))
+	if err != nil {
+		return target{}, err
+	}
+	return fromCopr(cfg, *res[i].copr, arg)
+}
+
+// explicitCopr parses owner/project/pkg; paths, URLs and local rpms are not one.
+func explicitCopr(arg string) (target, bool) {
+	parts := strings.Split(arg, "/")
+	if len(parts) != 3 || slices.Contains(parts, "") || strings.HasPrefix(arg, ".") ||
+		strings.Contains(arg, ":") || strings.HasSuffix(arg, ".rpm") {
+		return target{}, false
+	}
+	return target{name: parts[2], copr: parts[0] + "/" + parts[1]}, true
+}
+
+// fromCopr picks the package named term in a Copr project, or lets the user
+// choose one, then asks before enabling the project.
+func fromCopr(cfg *settings.Configuration, p copr.Project, term string) (target, error) {
+	pkgs, err := copr.Packages(cfg, p)
+	if err != nil {
+		return target{}, err
+	}
+
+	name := term
+	if !slices.Contains(pkgs, term) {
+		if settings.NoConfirm || len(pkgs) == 0 {
+			return target{}, errors.New(gotext.Get("no package named %s in %s", term, p.FullName))
+		}
+		res := make([]result, len(pkgs))
+		for i, pkg := range pkgs {
+			res[i] = result{Item: menu.Item{Source: "copr:" + p.FullName, Name: pkg}}
+		}
+		printResults(cfg, res)
+
+		i, err := pickOne(gotext.Get("Package to install: "), len(pkgs))
+		if err != nil {
+			return target{}, err
+		}
+		name = pkgs[i]
+	}
+	return target{name: name, copr: p.FullName}, confirmCopr(p.FullName)
+}
+
+// installTargets enables the Copr projects the targets need, then installs
+// all of them in a single dnf transaction.
+func installTargets(cfg *settings.Configuration, targets []target, flags []string) int {
+	args := append([]string{"install"}, flags...)
+	enabled := map[string]bool{}
+	for _, t := range targets {
+		if t.copr != "" && !enabled[t.copr] {
+			enabled[t.copr] = true
+			// btd already asked, so dnf's own Copr disclaimer is answered with -y.
+			if err := dnf.Run(cfg, true, "copr", "enable", t.copr, "-y"); err != nil {
+				return exitCode(err)
+			}
+		}
+		args = append(args, t.name)
+	}
+	return exitCode(dnf.Run(cfg, true, args...))
+}
+
+// firstLine trims a Copr description, often paragraphs of markdown, to its
+// first line.
+func firstLine(s string) string {
+	line, _, _ := strings.Cut(strings.TrimSpace(s), "\n")
+	return strings.TrimSpace(line)
+}
+
+func printResults(cfg *settings.Configuration, res []result) {
+	items := make([]menu.Item, len(res))
+	for i, r := range res {
+		items[i] = r.Item
+	}
+	menu.Print(os.Stdout, items, cfg.BottomUp, cfg.SingleLineResults)
+}
+
+var stdin = bufio.NewReader(os.Stdin)
+
+// ask prints question and returns the answer; EOF reads as an empty answer.
+func ask(question string) string {
+	fmt.Print(question)
+	line, _ := stdin.ReadString('\n')
+	return strings.TrimSpace(line)
+}
+
+// pickOne asks for exactly one number of an n-item menu.
+func pickOne(question string, n int) (int, error) {
+	picked, err := menu.ParseSelection(ask(question), n)
+	if err != nil {
+		return 0, err
+	}
+	if len(picked) != 1 {
+		return 0, errors.New(gotext.Get("pick exactly one number"))
+	}
+	return picked[0], nil
+}
+
+// confirm asks a yes/no question that defaults to no; -y answers yes.
+func confirm(question string) bool {
+	if settings.NoConfirm {
+		return true
+	}
+	answer := strings.ToLower(ask(question + " [y/N] "))
+	return answer == "y" || answer == "yes"
+}
+
+// confirmCopr asks before enabling a Copr project, which can replace any
+// package on the system once enabled.
+func confirmCopr(project string) error {
+	warn(gotext.Get("%s is a third-party Copr repository: once enabled, it can replace any package on your system.", project))
+	if !confirm(gotext.Get("Enable %s?", project)) {
+		return errors.New(gotext.Get("aborted"))
+	}
+	return nil
+}
+
+// parseFlags applies btd's flags to cfg and returns the arguments left for
+// the command; `--` stops parsing.
+func parseFlags(args []string, cfg *settings.Configuration) ([]string, error) {
+	strFlags := map[string]*string{
+		"--copr-url":   &cfg.CoprURL,
+		"--dnf-bin":    &cfg.DnfBin,
+		"--sudo-bin":   &cfg.SudoBin,
+		"--sudo-flags": &cfg.SudoFlags,
+	}
+	boolFlags := map[string]*bool{
+		"--bottom-up":           &cfg.BottomUp,
+		"--single-line-results": &cfg.SingleLineResults,
+		"--debug":               &cfg.Debug,
+	}
+
+	var rest []string
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		name, value, hasValue := strings.Cut(arg, "=")
+
+		if p, ok := strFlags[name]; ok {
+			if !hasValue {
+				if i+1 == len(args) {
+					return nil, errors.New(gotext.Get("flag %s requires a value", name))
+				}
+				i++
+				value = args[i]
+			}
+			*p = value
+			continue
+		}
+		if p, ok := boolFlags[arg]; ok {
+			*p = true
+			continue
+		}
+		if negated, ok := strings.CutPrefix(arg, "--no-"); ok && boolFlags["--"+negated] != nil {
+			*boolFlags["--"+negated] = false
+			continue
+		}
+
+		switch arg {
+		case "--save":
+			cfg.SaveConfig = true
+		case "-y", "--assumeyes":
+			settings.NoConfirm = true
+		case "--":
+			return append(rest, args[i+1:]...), nil
+		default:
+			rest = append(rest, arg)
+		}
+	}
+	return rest, nil
+}
+
+// needsRoot reports whether a passed-through dnf call must be elevated:
+// read-only commands and `<command> list|info` run as the user.
+func needsRoot(args []string) bool {
+	var words []string
+	for _, arg := range args {
+		if !strings.HasPrefix(arg, "-") {
+			words = append(words, arg)
+		}
+	}
+	switch {
+	case len(words) == 0:
+		return true
+	case readOnly[words[0]]:
+		return false
+	case len(words) > 1 && (words[1] == "list" || words[1] == "info"):
+		return false
+	}
+	return true
+}
+
+// exitCode turns a dnf error into btd's exit code, keeping dnf's own code.
+func exitCode(err error) int {
+	if exitErr, ok := errors.AsType[*exec.ExitError](err); ok {
+		return exitErr.ExitCode()
+	}
+	if err != nil {
+		return fail(err)
+	}
+	return 0
+}
+
+func usage() string {
+	return gotext.Get(`usage: btd [command] [options] [targets]
+
+commands:
+  btd                        upgrade the system
+  btd <term>                 search official repos and Copr, then pick what to install
+  btd install|in|-i <pkg>    install from official repos, falling back to Copr
+  btd install owner/project/pkg
+                             install pkg from that Copr project
+  btd search|se|-s <term>    search official repos and Copr
+  btd upgrade|up|-u          upgrade packages
+  btd remove|rm|-r <pkg>     remove packages
+  btd <dnf command>          any other dnf5 command is passed through
+
+options:
+  -h, --help                 show this help
+  --version                  show btd's version
+  -y, --assumeyes            answer yes to btd and dnf questions
+  --save                     save the given options to the config file
+  --copr-url <url>           Copr server
+  --dnf-bin <path>           dnf5 binary
+  --sudo-bin <path>          privilege elevator (sudo, run0, doas, pkexec)
+  --sudo-flags <flags>       flags for the privilege elevator
+  --[no-]bottom-up           show the best match last, next to the prompt
+  --[no-]single-line-results show each result on one line
+  --[no-]debug               print the commands and URLs btd runs
+`)
+}
+
+func warn(msg string) {
+	fmt.Fprintln(os.Stderr, gotext.Get("warning:"), msg)
+}
+
+func fail(err error) int {
+	fmt.Fprintln(os.Stderr, gotext.Get("error:"), err)
+	return 1
+}

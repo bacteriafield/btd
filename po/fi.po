@@ -1,0 +1,162 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: btd\n"
+"PO-Revision-Date: 2026-10-26 00:00+0000\n"
+"Last-Translator: machine translation, needs review by a native speaker\n"
+"Language-Team: none\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: main.go:309
+msgid "%[1]s is not in the enabled repositories; use owner/project/%[1]s to install it from Copr with -y"
+msgstr "%[1]s ei ole käytössä olevissa ohjelmistolähteissä; käytä owner/project/%[1]s asentaaksesi sen Coprista valitsimella -y"
+
+#: main.go:439
+msgid "%s is a third-party Copr repository: once enabled, it can replace any package on your system."
+msgstr "%s on kolmannen osapuolen Copr-ohjelmistolähde: käyttöön otettuna se voi korvata minkä tahansa järjestelmäsi paketin."
+
+#: main.go:312
+msgid "%s is not in the enabled repositories, searching Copr..."
+msgstr "%s ei ole käytössä olevissa ohjelmistolähteissä, haetaan Coprista..."
+
+#: main.go:328
+msgid "Copr project to use: "
+msgstr "Käytettävä Copr-projekti: "
+
+#: main.go:186
+msgid "Copr search failed, showing the enabled repositories only: %s"
+msgstr "Haku Coprista epäonnistui, näytetään vain käytössä olevat ohjelmistolähteet: %s"
+
+#: main.go:440
+msgid "Enable %s?"
+msgstr "Otetaanko %s käyttöön?"
+
+#: main.go:364
+msgid "Package to install: "
+msgstr "Asennettava paketti: "
+
+#: main.go:243
+msgid "Packages to install (e.g. 1 2 3, 1-3): "
+msgstr "Asennettavat paketit (esim. 1 2 3, 1-3): "
+
+#: main.go:167
+msgid "Searching the repositories and Copr..."
+msgstr "Haetaan ohjelmistolähteistä ja Coprista..."
+
+#: main.go:441
+msgid "aborted"
+msgstr "keskeytetty"
+
+#: main.go:103
+msgid "avoid running btd as root"
+msgstr "vältä btd:n suorittamista root-käyttäjänä"
+
+#: main.go:565
+msgid "error:"
+msgstr "virhe:"
+
+#: pkg/settings/config.go:116
+msgid "failed to read config file '%s': %s"
+msgstr "asetustiedoston '%s' lukeminen epäonnistui: %s"
+
+#: main.go:469
+msgid "flag %s requires a value"
+msgstr "valitsin %s vaatii arvon"
+
+#: pkg/menu/menu.go:53
+msgid "invalid selection: %s"
+msgstr "virheellinen valinta: %s"
+
+#: main.go:356
+msgid "no package named %s in %s"
+msgstr "pakettia nimeltä %s ei ole projektissa %s"
+
+#: main.go:224
+#: main.go:238
+msgid "no packages found"
+msgstr "paketteja ei löytynyt"
+
+#: pkg/settings/errors.go:10
+msgid "no privilege elevator found (tried %s, sudo, run0, doas and pkexec)"
+msgstr "oikeuksien korotustyökalua ei löytynyt (kokeiltiin %s, sudo, run0, doas ja pkexec)"
+
+#: main.go:164
+msgid "no search terms given"
+msgstr "hakusanoja ei annettu"
+
+#: main.go:96
+msgid "panic: %v"
+msgstr "paniikki: %v"
+
+#: main.go:422
+msgid "pick exactly one number"
+msgstr "valitse täsmälleen yksi numero"
+
+#: main.go:318
+msgid "target not found: %s"
+msgstr "kohdetta ei löytynyt: %s"
+
+#: pkg/copr/copr.go:109
+msgid "unsupported system: no REDHAT_SUPPORT_PRODUCT_VERSION in /etc/os-release"
+msgstr "järjestelmää ei tueta: REDHAT_SUPPORT_PRODUCT_VERSION puuttuu tiedostosta /etc/os-release"
+
+#: main.go:532
+msgid ""
+"usage: btd [command] [options] [targets]\n"
+"\n"
+"commands:\n"
+"  btd                        upgrade the system\n"
+"  btd <term>                 search official repos and Copr, then pick what to install\n"
+"  btd install|in|-i <pkg>    install from official repos, falling back to Copr\n"
+"  btd install owner/project/pkg\n"
+"                             install pkg from that Copr project\n"
+"  btd search|se|-s <term>    search official repos and Copr\n"
+"  btd upgrade|up|-u          upgrade packages\n"
+"  btd remove|rm|-r <pkg>     remove packages\n"
+"  btd <dnf command>          any other dnf5 command is passed through\n"
+"\n"
+"options:\n"
+"  -h, --help                 show this help\n"
+"  --version                  show btd's version\n"
+"  -y, --assumeyes            answer yes to btd and dnf questions\n"
+"  --save                     save the given options to the config file\n"
+"  --copr-url <url>           Copr server\n"
+"  --dnf-bin <path>           dnf5 binary\n"
+"  --sudo-bin <path>          privilege elevator (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       flags for the privilege elevator\n"
+"  --[no-]bottom-up           show the best match last, next to the prompt\n"
+"  --[no-]single-line-results show each result on one line\n"
+"  --[no-]debug               print the commands and URLs btd runs\n"
+msgstr ""
+"käyttö: btd [command] [options] [targets]\n"
+"\n"
+"komennot:\n"
+"  btd                        päivittää järjestelmän\n"
+"  btd <term>                 hakee virallisista lähteistä ja Coprista ja valitsee asennettavat\n"
+"  btd install|in|-i <pkg>    asentaa virallisista lähteistä, tarvittaessa Coprista\n"
+"  btd install owner/project/pkg\n"
+"                             asentaa pkg:n kyseisestä Copr-projektista\n"
+"  btd search|se|-s <term>    hakee virallisista lähteistä ja Coprista\n"
+"  btd upgrade|up|-u          päivittää paketit\n"
+"  btd remove|rm|-r <pkg>     poistaa paketit\n"
+"  btd <dnf command>          muut dnf5-komennot välitetään sellaisenaan\n"
+"\n"
+"valitsimet:\n"
+"  -h, --help                 näyttää tämän ohjeen\n"
+"  --version                  näyttää btd:n version\n"
+"  -y, --assumeyes            vastaa kyllä btd:n ja dnf:n kysymyksiin\n"
+"  --save                     tallentaa annetut valitsimet asetustiedostoon\n"
+"  --copr-url <url>           Copr-palvelin\n"
+"  --dnf-bin <path>           dnf5-ohjelma\n"
+"  --sudo-bin <path>          oikeuksien korotustyökalu (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       oikeuksien korotustyökalun valitsimet\n"
+"  --[no-]bottom-up           näyttää parhaan osuman viimeisenä, kehotteen vieressä\n"
+"  --[no-]single-line-results näyttää jokaisen tuloksen yhdellä rivillä\n"
+"  --[no-]debug               tulostaa btd:n suorittamat komennot ja URL-osoitteet\n"
+
+#: main.go:561
+msgid "warning:"
+msgstr "varoitus:"

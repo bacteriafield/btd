@@ -1,0 +1,162 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: btd\n"
+"PO-Revision-Date: 2026-10-26 00:00+0000\n"
+"Last-Translator: machine translation, needs review by a native speaker\n"
+"Language-Team: none\n"
+"Language: he\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: main.go:309
+msgid "%[1]s is not in the enabled repositories; use owner/project/%[1]s to install it from Copr with -y"
+msgstr "%[1]s אינו במאגרים המופעלים; השתמשו ב־owner/project/%[1]s כדי להתקין אותו מ־Copr עם -y"
+
+#: main.go:439
+msgid "%s is a third-party Copr repository: once enabled, it can replace any package on your system."
+msgstr "%s הוא מאגר Copr של צד שלישי: לאחר הפעלתו הוא יכול להחליף כל חבילה במערכת שלך."
+
+#: main.go:312
+msgid "%s is not in the enabled repositories, searching Copr..."
+msgstr "%s אינו במאגרים המופעלים, מתבצע חיפוש ב־Copr..."
+
+#: main.go:328
+msgid "Copr project to use: "
+msgstr "פרויקט Copr לשימוש: "
+
+#: main.go:186
+msgid "Copr search failed, showing the enabled repositories only: %s"
+msgstr "החיפוש ב־Copr נכשל, מוצגים רק המאגרים המופעלים: %s"
+
+#: main.go:440
+msgid "Enable %s?"
+msgstr "להפעיל את %s?"
+
+#: main.go:364
+msgid "Package to install: "
+msgstr "חבילה להתקנה: "
+
+#: main.go:243
+msgid "Packages to install (e.g. 1 2 3, 1-3): "
+msgstr "חבילות להתקנה (למשל 1 2 3, 1-3): "
+
+#: main.go:167
+msgid "Searching the repositories and Copr..."
+msgstr "מחפש במאגרים וב־Copr..."
+
+#: main.go:441
+msgid "aborted"
+msgstr "בוטל"
+
+#: main.go:103
+msgid "avoid running btd as root"
+msgstr "מומלץ לא להריץ את btd כ־root"
+
+#: main.go:565
+msgid "error:"
+msgstr "שגיאה:"
+
+#: pkg/settings/config.go:116
+msgid "failed to read config file '%s': %s"
+msgstr "קריאת קובץ ההגדרות '%s' נכשלה: %s"
+
+#: main.go:469
+msgid "flag %s requires a value"
+msgstr "הדגל %s דורש ערך"
+
+#: pkg/menu/menu.go:53
+msgid "invalid selection: %s"
+msgstr "בחירה לא תקינה: %s"
+
+#: main.go:356
+msgid "no package named %s in %s"
+msgstr "אין חבילה בשם %s ב־%s"
+
+#: main.go:224
+#: main.go:238
+msgid "no packages found"
+msgstr "לא נמצאו חבילות"
+
+#: pkg/settings/errors.go:10
+msgid "no privilege elevator found (tried %s, sudo, run0, doas and pkexec)"
+msgstr "לא נמצא כלי להעלאת הרשאות (נוסו %s, sudo, run0, doas ו־pkexec)"
+
+#: main.go:164
+msgid "no search terms given"
+msgstr "לא סופקו מונחי חיפוש"
+
+#: main.go:96
+msgid "panic: %v"
+msgstr "פאניקה: %v"
+
+#: main.go:422
+msgid "pick exactly one number"
+msgstr "יש לבחור מספר אחד בדיוק"
+
+#: main.go:318
+msgid "target not found: %s"
+msgstr "היעד לא נמצא: %s"
+
+#: pkg/copr/copr.go:109
+msgid "unsupported system: no REDHAT_SUPPORT_PRODUCT_VERSION in /etc/os-release"
+msgstr "מערכת לא נתמכת: REDHAT_SUPPORT_PRODUCT_VERSION חסר ב־/etc/os-release"
+
+#: main.go:532
+msgid ""
+"usage: btd [command] [options] [targets]\n"
+"\n"
+"commands:\n"
+"  btd                        upgrade the system\n"
+"  btd <term>                 search official repos and Copr, then pick what to install\n"
+"  btd install|in|-i <pkg>    install from official repos, falling back to Copr\n"
+"  btd install owner/project/pkg\n"
+"                             install pkg from that Copr project\n"
+"  btd search|se|-s <term>    search official repos and Copr\n"
+"  btd upgrade|up|-u          upgrade packages\n"
+"  btd remove|rm|-r <pkg>     remove packages\n"
+"  btd <dnf command>          any other dnf5 command is passed through\n"
+"\n"
+"options:\n"
+"  -h, --help                 show this help\n"
+"  --version                  show btd's version\n"
+"  -y, --assumeyes            answer yes to btd and dnf questions\n"
+"  --save                     save the given options to the config file\n"
+"  --copr-url <url>           Copr server\n"
+"  --dnf-bin <path>           dnf5 binary\n"
+"  --sudo-bin <path>          privilege elevator (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       flags for the privilege elevator\n"
+"  --[no-]bottom-up           show the best match last, next to the prompt\n"
+"  --[no-]single-line-results show each result on one line\n"
+"  --[no-]debug               print the commands and URLs btd runs\n"
+msgstr ""
+"שימוש: btd [command] [options] [targets]\n"
+"\n"
+"פקודות:\n"
+"  btd                        משדרג את המערכת\n"
+"  btd <term>                 מחפש במאגרים הרשמיים וב־Copr ומאפשר לבחור מה להתקין\n"
+"  btd install|in|-i <pkg>    מתקין מהמאגרים הרשמיים, ואם אין, מ־Copr\n"
+"  btd install owner/project/pkg\n"
+"                             מתקין את pkg מאותו פרויקט Copr\n"
+"  btd search|se|-s <term>    מחפש במאגרים הרשמיים וב־Copr\n"
+"  btd upgrade|up|-u          משדרג חבילות\n"
+"  btd remove|rm|-r <pkg>     מסיר חבילות\n"
+"  btd <dnf command>          כל פקודת dnf5 אחרת מועברת כמות שהיא\n"
+"\n"
+"אפשרויות:\n"
+"  -h, --help                 מציג עזרה זו\n"
+"  --version                  מציג את הגרסה של btd\n"
+"  -y, --assumeyes            עונה כן לשאלות של btd ושל dnf\n"
+"  --save                     שומר את האפשרויות שניתנו בקובץ ההגדרות\n"
+"  --copr-url <url>           שרת Copr\n"
+"  --dnf-bin <path>           קובץ ההפעלה של dnf5\n"
+"  --sudo-bin <path>          כלי להעלאת הרשאות (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       דגלים לכלי העלאת ההרשאות\n"
+"  --[no-]bottom-up           מציג את ההתאמה הטובה ביותר אחרונה, ליד שורת הפקודה\n"
+"  --[no-]single-line-results מציג כל תוצאה בשורה אחת\n"
+"  --[no-]debug               מדפיס את הפקודות וכתובות ה־URL ש־btd מריץ\n"
+
+#: main.go:561
+msgid "warning:"
+msgstr "אזהרה:"

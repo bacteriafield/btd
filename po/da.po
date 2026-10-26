@@ -1,0 +1,162 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: btd\n"
+"PO-Revision-Date: 2026-10-26 00:00+0000\n"
+"Last-Translator: machine translation, needs review by a native speaker\n"
+"Language-Team: none\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: main.go:309
+msgid "%[1]s is not in the enabled repositories; use owner/project/%[1]s to install it from Copr with -y"
+msgstr "%[1]s findes ikke i de aktiverede depoter; brug owner/project/%[1]s for at installere det fra Copr med -y"
+
+#: main.go:439
+msgid "%s is a third-party Copr repository: once enabled, it can replace any package on your system."
+msgstr "%s er et Copr-depot fra tredjepart: når det er aktiveret, kan det erstatte enhver pakke på dit system."
+
+#: main.go:312
+msgid "%s is not in the enabled repositories, searching Copr..."
+msgstr "%s findes ikke i de aktiverede depoter, søger i Copr..."
+
+#: main.go:328
+msgid "Copr project to use: "
+msgstr "Copr-projekt, der skal bruges: "
+
+#: main.go:186
+msgid "Copr search failed, showing the enabled repositories only: %s"
+msgstr "Søgning i Copr mislykkedes, viser kun de aktiverede depoter: %s"
+
+#: main.go:440
+msgid "Enable %s?"
+msgstr "Aktivér %s?"
+
+#: main.go:364
+msgid "Package to install: "
+msgstr "Pakke, der skal installeres: "
+
+#: main.go:243
+msgid "Packages to install (e.g. 1 2 3, 1-3): "
+msgstr "Pakker, der skal installeres (f.eks. 1 2 3, 1-3): "
+
+#: main.go:167
+msgid "Searching the repositories and Copr..."
+msgstr "Søger i depoterne og i Copr..."
+
+#: main.go:441
+msgid "aborted"
+msgstr "afbrudt"
+
+#: main.go:103
+msgid "avoid running btd as root"
+msgstr "undgå at køre btd som root"
+
+#: main.go:565
+msgid "error:"
+msgstr "fejl:"
+
+#: pkg/settings/config.go:116
+msgid "failed to read config file '%s': %s"
+msgstr "kunne ikke læse konfigurationsfilen '%s': %s"
+
+#: main.go:469
+msgid "flag %s requires a value"
+msgstr "flaget %s kræver en værdi"
+
+#: pkg/menu/menu.go:53
+msgid "invalid selection: %s"
+msgstr "ugyldigt valg: %s"
+
+#: main.go:356
+msgid "no package named %s in %s"
+msgstr "ingen pakke med navnet %s i %s"
+
+#: main.go:224
+#: main.go:238
+msgid "no packages found"
+msgstr "ingen pakker fundet"
+
+#: pkg/settings/errors.go:10
+msgid "no privilege elevator found (tried %s, sudo, run0, doas and pkexec)"
+msgstr "intet værktøj til rettighedsforøgelse fundet (prøvede %s, sudo, run0, doas og pkexec)"
+
+#: main.go:164
+msgid "no search terms given"
+msgstr "ingen søgeord angivet"
+
+#: main.go:96
+msgid "panic: %v"
+msgstr "panik: %v"
+
+#: main.go:422
+msgid "pick exactly one number"
+msgstr "vælg præcis ét nummer"
+
+#: main.go:318
+msgid "target not found: %s"
+msgstr "mål ikke fundet: %s"
+
+#: pkg/copr/copr.go:109
+msgid "unsupported system: no REDHAT_SUPPORT_PRODUCT_VERSION in /etc/os-release"
+msgstr "system ikke understøttet: REDHAT_SUPPORT_PRODUCT_VERSION mangler i /etc/os-release"
+
+#: main.go:532
+msgid ""
+"usage: btd [command] [options] [targets]\n"
+"\n"
+"commands:\n"
+"  btd                        upgrade the system\n"
+"  btd <term>                 search official repos and Copr, then pick what to install\n"
+"  btd install|in|-i <pkg>    install from official repos, falling back to Copr\n"
+"  btd install owner/project/pkg\n"
+"                             install pkg from that Copr project\n"
+"  btd search|se|-s <term>    search official repos and Copr\n"
+"  btd upgrade|up|-u          upgrade packages\n"
+"  btd remove|rm|-r <pkg>     remove packages\n"
+"  btd <dnf command>          any other dnf5 command is passed through\n"
+"\n"
+"options:\n"
+"  -h, --help                 show this help\n"
+"  --version                  show btd's version\n"
+"  -y, --assumeyes            answer yes to btd and dnf questions\n"
+"  --save                     save the given options to the config file\n"
+"  --copr-url <url>           Copr server\n"
+"  --dnf-bin <path>           dnf5 binary\n"
+"  --sudo-bin <path>          privilege elevator (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       flags for the privilege elevator\n"
+"  --[no-]bottom-up           show the best match last, next to the prompt\n"
+"  --[no-]single-line-results show each result on one line\n"
+"  --[no-]debug               print the commands and URLs btd runs\n"
+msgstr ""
+"brug: btd [command] [options] [targets]\n"
+"\n"
+"kommandoer:\n"
+"  btd                        opgraderer systemet\n"
+"  btd <term>                 søger i officielle depoter og Copr og vælger, hvad der skal installeres\n"
+"  btd install|in|-i <pkg>    installerer fra officielle depoter, med Copr som reserve\n"
+"  btd install owner/project/pkg\n"
+"                             installerer pkg fra det Copr-projekt\n"
+"  btd search|se|-s <term>    søger i officielle depoter og Copr\n"
+"  btd upgrade|up|-u          opgraderer pakker\n"
+"  btd remove|rm|-r <pkg>     fjerner pakker\n"
+"  btd <dnf command>          alle andre dnf5-kommandoer sendes videre\n"
+"\n"
+"tilvalg:\n"
+"  -h, --help                 viser denne hjælp\n"
+"  --version                  viser btd's version\n"
+"  -y, --assumeyes            svarer ja til spørgsmål fra btd og dnf\n"
+"  --save                     gemmer de angivne tilvalg i konfigurationsfilen\n"
+"  --copr-url <url>           Copr-server\n"
+"  --dnf-bin <path>           dnf5-program\n"
+"  --sudo-bin <path>          værktøj til rettighedsforøgelse (sudo, run0, doas, pkexec)\n"
+"  --sudo-flags <flags>       flag til værktøjet til rettighedsforøgelse\n"
+"  --[no-]bottom-up           viser det bedste match sidst, ved prompten\n"
+"  --[no-]single-line-results viser hvert resultat på én linje\n"
+"  --[no-]debug               udskriver de kommandoer og URL'er, btd kører\n"
+
+#: main.go:561
+msgid "warning:"
+msgstr "advarsel:"
