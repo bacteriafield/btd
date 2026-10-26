@@ -1,16 +1,19 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"runtime/debug"
+	"slices"
 	"strings"
 
 	"github.com/leonelquinteros/gotext"
 
 	"github.com/bacteriafield/btd/pkg/dnf"
+	"github.com/bacteriafield/btd/pkg/menu"
 	"github.com/bacteriafield/btd/pkg/settings"
 )
 
@@ -124,6 +127,8 @@ func run() (ret int) {
 
 	cmd, args := rest[0], rest[1:]
 	switch btdCommands[cmd] {
+	case "search":
+		return search(cfg, args)
 	case "upgrade", "remove":
 		return exitCode(dnf.Run(cfg, true, append([]string{btdCommands[cmd]}, args...)...))
 	case "help":
@@ -138,7 +143,101 @@ func run() (ret int) {
 		return exitCode(dnf.Run(cfg, needsRoot(rest), rest...))
 	}
 
-	return fail(errors.New(gotext.Get("unknown command: %s", cmd)))
+	return interactive(cfg, rest)
+}
+
+// result is a search hit from the enabled repositories.
+type result struct {
+	menu.Item
+}
+
+// results searches the enabled repositories, exact name matches first.
+func results(cfg *settings.Configuration, terms []string) ([]result, error) {
+	if len(terms) == 0 {
+		return nil, errors.New(gotext.Get("no search terms given"))
+	}
+	query := strings.Join(terms, " ")
+
+	pkgs, err := dnf.Search(cfg, terms)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []result
+	for _, p := range pkgs {
+		res = append(res, result{Item: menu.Item{Source: p.Repo, Name: p.Name, Version: p.EVR, Description: p.Summary}})
+	}
+	slices.SortStableFunc(res, func(a, b result) int { return score(a, query) - score(b, query) })
+	return res, nil
+}
+
+// ponytail: naive name-match ranking; switch to a scored match if results feel off.
+func score(r result, query string) int {
+	name, query := strings.ToLower(r.Name), strings.ToLower(query)
+	switch {
+	case name == query:
+		return 0
+	case strings.Contains(name, query):
+		return 1
+	}
+	return 2
+}
+
+func search(cfg *settings.Configuration, terms []string) int {
+	res, err := results(cfg, terms)
+	if err != nil {
+		return fail(err)
+	}
+	if len(res) == 0 {
+		fmt.Fprintln(os.Stderr, gotext.Get("no packages found"))
+		return 1
+	}
+	printResults(cfg, res)
+	return 0
+}
+
+// interactive is `btd <term>`: search, then install what the user picks.
+func interactive(cfg *settings.Configuration, terms []string) int {
+	res, err := results(cfg, terms)
+	if err != nil {
+		return fail(err)
+	}
+	if len(res) == 0 {
+		fmt.Fprintln(os.Stderr, gotext.Get("no packages found"))
+		return 1
+	}
+	printResults(cfg, res)
+
+	picked, err := menu.ParseSelection(ask(gotext.Get("Packages to install (e.g. 1 2 3, 1-3): ")), len(res))
+	if err != nil {
+		return fail(err)
+	}
+	if len(picked) == 0 {
+		return 0
+	}
+
+	names := []string{"install"}
+	for _, i := range picked {
+		names = append(names, res[i].Name)
+	}
+	return exitCode(dnf.Run(cfg, true, names...))
+}
+
+func printResults(cfg *settings.Configuration, res []result) {
+	items := make([]menu.Item, len(res))
+	for i, r := range res {
+		items[i] = r.Item
+	}
+	menu.Print(os.Stdout, items, cfg.BottomUp, cfg.SingleLineResults)
+}
+
+var stdin = bufio.NewReader(os.Stdin)
+
+// ask prints question and returns the answer; EOF reads as an empty answer.
+func ask(question string) string {
+	fmt.Print(question)
+	line, _ := stdin.ReadString('\n')
+	return strings.TrimSpace(line)
 }
 
 // parseFlags applies btd's flags to cfg and returns the arguments left for
