@@ -31,6 +31,13 @@ func Search(cfg *settings.Configuration, terms []string) ([]Package, error) {
 	return parsePackages(out), err
 }
 
+// Provided reports whether an enabled repository provides spec, which covers
+// package names and capabilities such as pkgconfig(gtk4).
+func Provided(cfg *settings.Configuration, spec string) (bool, error) {
+	out, err := query(cfg, "-q", "repoquery", "--whatprovides", spec, "--qf", "%{name}\n")
+	return strings.TrimSpace(out) != "", err
+}
+
 func query(cfg *settings.Configuration, args ...string) (string, error) {
 	cfg.Debugf("%s %s", cfg.DnfBin, strings.Join(args, " "))
 	out, err := exec.Command(cfg.DnfBin, args...).Output()

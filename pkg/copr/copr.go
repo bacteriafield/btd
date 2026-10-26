@@ -50,6 +50,25 @@ func Search(cfg *settings.Configuration, query string) ([]Project, error) {
 	}), nil
 }
 
+// Packages returns the names of the packages in a project.
+func Packages(cfg *settings.Configuration, p Project) ([]string, error) {
+	var page struct {
+		Items []struct {
+			Name string `json:"name"`
+		} `json:"items"`
+	}
+	query := url.Values{"ownername": {p.Owner}, "projectname": {p.Name}}
+	if err := get(cfg, "/api_3/package/list?"+query.Encode(), &page); err != nil {
+		return nil, err
+	}
+
+	names := make([]string, len(page.Items))
+	for i, item := range page.Items {
+		names[i] = item.Name
+	}
+	return names, nil
+}
+
 func get(cfg *settings.Configuration, path string, v any) error {
 	u := strings.TrimSuffix(cfg.CoprURL, "/") + path
 	cfg.Debugf("GET %s", u)
