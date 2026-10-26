@@ -12,6 +12,7 @@ Source:         %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 
 BuildRequires:  golang >= 1.26
 BuildRequires:  gettext
+BuildRequires:  make
 Requires:       dnf5
 Requires:       dnf5-plugins
 
@@ -25,17 +26,11 @@ package needs after asking.
 
 %build
 export GOPROXY=https://proxy.golang.org,direct
-go build -trimpath -buildmode=pie \
-    -ldflags "-X main.btdVersion=%{version} -X main.locale=%{_datadir}/locale" \
-    -o btd .
+export GOFLAGS=-buildmode=pie
+%make_build PREFIX=%{_prefix} VERSION=%{version}
 
 %install
-install -Dpm 0755 btd %{buildroot}%{_bindir}/btd
-for po in po/*.po; do
-    lang=$(basename "$po" .po)
-    install -d %{buildroot}%{_datadir}/locale/$lang/LC_MESSAGES
-    msgfmt -o %{buildroot}%{_datadir}/locale/$lang/LC_MESSAGES/%{name}.mo "$po"
-done
+%make_install PREFIX=%{_prefix}
 %find_lang %{name}
 
 %files -f %{name}.lang
