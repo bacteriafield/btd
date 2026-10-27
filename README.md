@@ -23,6 +23,10 @@ From source:
 ./scripts/deps.sh --build     # adds golang, make and gettext
 make PREFIX=/usr && sudo make install PREFIX=/usr
 ```
+Quick install:
+```sh
+curl -fsSL https://raw.githubusercontent.com/bacteriafield/btd/main/scritps/install.sh | bash
+```
 
 Once the Copr project is published:
 
