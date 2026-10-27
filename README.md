@@ -7,17 +7,28 @@ installs that enable the Copr project a package needs.
 
 ## Install
 
+btd runs on Fedora only. From the latest GitHub release (x86_64):
+
+```sh
+git clone https://github.com/bacteriafield/btd && cd btd
+./scripts/install.sh          # or a given version: ./scripts/install.sh 0.0.1
+```
+
+`scripts/deps.sh` installs what btd needs to run (dnf5 and dnf5-plugins);
+`install.sh` calls it first.
+
+From source:
+
+```sh
+./scripts/deps.sh --build     # adds golang, make and gettext
+make PREFIX=/usr && sudo make install PREFIX=/usr
+```
+
 Once the Copr project is published:
 
 ```sh
 sudo dnf copr enable bacteriafield/btd
 sudo dnf install btd
-```
-
-From source (Go 1.26+):
-
-```sh
-go build -o btd .
 ```
 
 ## Usage

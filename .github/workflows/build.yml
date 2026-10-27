@@ -37,7 +37,8 @@ jobs:
               run: strip btd
 
             - name: Create archive
-              # Laid out from /, so `sudo tar -xzf btd-*.tar.gz -C /` installs it.
+              # Laid out from /; scripts/install.sh copies it file by file, since
+              # untarring over / would chown / and /usr to the runner user.
               run: |
                   make install DESTDIR=dist PREFIX=/usr
                   install -Dm644 LICENSE dist/usr/share/licenses/btd/LICENSE
