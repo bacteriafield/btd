@@ -95,7 +95,12 @@ The shipped translations were machine-made and keep every format verb
 ```sh
 go test ./...
 docker build -t btd . && docker run --rm -it btd   # Fedora box with btd
+make bench                    # btd against dnf5, on Fedora
+make docker-bench             # the same in a Fedora container
 ```
+
+`BENCHFLAGS=-short` skips the Copr search. The install benchmark needs
+root, so it runs in the container only.
 
 The Copr project needs "internet access during builds" enabled so the
 spec can download Go modules.
