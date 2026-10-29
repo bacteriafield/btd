@@ -1,7 +1,7 @@
-# btd
+# Better Than DNF
 BTD (Better Than DNF) - An RPM helper
 
-btd wraps dnf5 on Fedora the way yay wraps pacman: one search over the
+btd wraps dnf5 on Fedora: one search over the
 enabled repositories and [Copr](https://copr.fedorainfracloud.org), and
 installs that enable the Copr project a package needs.
 
