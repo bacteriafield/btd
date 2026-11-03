@@ -1,5 +1,5 @@
 # Fedora test box with btd and its translations: make docker-run
-FROM golang:1.26 AS build
+FROM golang:1.27 AS build
 WORKDIR /src
 COPY . .
 # PREFIX=/usr points btd at /usr/share/locale, where the .po files go below.
