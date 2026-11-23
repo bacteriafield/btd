@@ -6,9 +6,15 @@ IMAGE     ?= btd
 ARGS      ?= btd -s neovim
 BENCHFLAGS ?=
 
+# go finds its own installation. A GOROOT exported by a version manager
+# (gvm) can point at another Go: when the go running is newer (go.mod's
+# toolchain line, or an editor putting a toolchain first in PATH), it then
+# runs that older Go's compiler and fails with "compile: version ... does
+# not match go tool version".
+GO      := env -u GOROOT go
 LDFLAGS := -X main.locale=$(LOCALEDIR) $(if $(VERSION),-X main.btdVersion=$(VERSION))
 LANGS   := $(basename $(notdir $(wildcard po/*.po)))
-GOBUILD := go build -trimpath -ldflags "$(LDFLAGS)" -o btd .
+GOBUILD := $(GO) build -trimpath -ldflags "$(LDFLAGS)" -o btd .
 
 .PHONY: build test bench install uninstall pot docker docker-run docker-bench docker-test clean
 
@@ -19,11 +25,11 @@ btd:
 	$(GOBUILD)
 
 test:
-	go test ./...
+	$(GO) test ./...
 
 ## btd against dnf5 on this Fedora machine; BENCHFLAGS=-short skips Copr.
 bench:
-	go test -run '^$$' -bench . -benchtime 5x $(BENCHFLAGS) ./benchmark
+	$(GO) test -run '^$$' -bench . -benchtime 5x $(BENCHFLAGS) ./benchmark
 
 po/%.mo: po/%.po
 	msgfmt -c -o $@ $<
@@ -39,7 +45,7 @@ uninstall:
 
 ## Regenerates po/btd.pot from the gotext.Get calls.
 pot:
-	go run github.com/leonelquinteros/gotext/cli/xgotext@v1.7.2 -pkg-tree . -out po -default btd
+	$(GO) run github.com/leonelquinteros/gotext/cli/xgotext@v1.7.2 -pkg-tree . -out po -default btd
 
 ## Fedora image with btd and its translations, for testing.
 docker:
