@@ -11,7 +11,6 @@ import (
 
 	"github.com/bacteriafield/btd/pkg/copr"
 	"github.com/bacteriafield/btd/pkg/dnf"
-	"github.com/bacteriafield/btd/pkg/menu"
 	"github.com/bacteriafield/btd/pkg/settings"
 )
 
@@ -58,7 +57,8 @@ func resolve(cfg *settings.Configuration, arg string) (target, error) {
 
 	// -y never picks a third-party repository on its own.
 	if settings.NoConfirm {
-		return target{}, errors.New(gotext.Get("%[1]s is not in the enabled repositories; use owner/project/%[1]s to install it from Copr with -y", arg))
+		return target{}, errors.New(gotext.Get(
+			"%[1]s is not in the enabled repositories; use owner/project/%[1]s to install it from Copr with -y", arg))
 	}
 
 	fmt.Fprintln(os.Stderr, gotext.Get("%s is not in the enabled repositories, searching Copr...", arg))
@@ -72,7 +72,7 @@ func resolve(cfg *settings.Configuration, arg string) (target, error) {
 
 	res := make([]result, len(projects))
 	for i, p := range projects {
-		res[i] = result{Item: menu.Item{Source: "copr:" + p.FullName, Description: firstLine(p.Description)}, copr: &p}
+		res[i] = result{Source: "copr:" + p.FullName, Description: firstLine(p.Description), copr: &p}
 	}
 	rank(res, arg)
 	printResults(cfg, res)
@@ -109,7 +109,7 @@ func fromCopr(cfg *settings.Configuration, p copr.Project, term string) (target,
 		}
 		res := make([]result, len(pkgs))
 		for i, pkg := range pkgs {
-			res[i] = result{Item: menu.Item{Source: "copr:" + p.FullName, Name: pkg}}
+			res[i] = result{Source: "copr:" + p.FullName, Name: pkg}
 		}
 		printResults(cfg, res)
 

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="398" viewBox="0 0 760 398" role="img" aria-labelledby="t d">
+<title id="t">Time per command, lower is better</title>
+<desc id="d">Search: btd 84 ms, dnf5 718 ms, btd 0.0.1 692 ms; Info: btd 75 ms, dnf5 682 ms, btd 0.0.1 676 ms; Install, nothing to do: btd 78 ms, dnf5 841 ms, btd 0.0.1 1599 ms</desc>
+<style>
+text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+.bg { fill: #fcfcfb; } .title { fill: #0b0b0b; font-size: 16px; font-weight: 600; }
+.sub, .value, .cmd { fill: #52514e; font-size: 12px; } .label, .strong { fill: #0b0b0b; font-weight: 600; }
+.label { font-size: 13px; } .cmd { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+.tick { fill: #898781; font-size: 11px; font-variant-numeric: tabular-nums; }
+.grid { stroke: #e1e0d9; stroke-width: 1; } .axis { stroke: #c3c2b7; stroke-width: 1; }
+.s1 { fill: #2a78d6; } .s2 { fill: #eb6834; } .s3 { fill: #1baf7a; }
+@media (prefers-color-scheme: dark) {
+  .bg { fill: #1a1a19; } .title, .label, .strong { fill: #f0efec; } .sub, .value, .cmd { fill: #c3c2b7; }
+  .grid { stroke: #2c2c2a; } .axis { stroke: #383835; }
+  .s1 { fill: #3987e5; } .s2 { fill: #d95926; } .s3 { fill: #199e70; }
+}
+</style>
+<rect class="bg" width="760" height="398" rx="8"/>
+<text class="title" x="24" y="34">Time per command, lower is better</text>
+<text class="sub" x="24" y="54">Median wall time · Fedora 45 container, dnf5 5.4.6 · Intel i5-8265U</text>
+<rect class="s1" x="24" y="72" width="12" height="12" rx="3"/>
+<text class="sub" x="42" y="82">btd</text>
+<rect class="s2" x="89" y="72" width="12" height="12" rx="3"/>
+<text class="sub" x="107" y="82">dnf5</text>
+<rect class="s3" x="161" y="72" width="12" height="12" rx="3"/>
+<text class="sub" x="179" y="82">btd 0.0.1, before</text>
+<line class="axis" x1="210.0" y1="104" x2="210.0" y2="352"/>
+<text class="tick" x="210.0" y="368" text-anchor="middle">0</text>
+<line class="grid" x1="332.2" y1="104" x2="332.2" y2="352"/>
+<text class="tick" x="332.2" y="368" text-anchor="middle">500 ms</text>
+<line class="grid" x1="454.4" y1="104" x2="454.4" y2="352"/>
+<text class="tick" x="454.4" y="368" text-anchor="middle">1,000 ms</text>
+<line class="grid" x1="576.7" y1="104" x2="576.7" y2="352"/>
+<text class="tick" x="576.7" y="368" text-anchor="middle">1,500 ms</text>
+<text class="label" x="24" y="138.0">Search</text>
+<text class="cmd" x="24" y="154.0">btd -s neovim</text>
+<path class="s1" d="M210,112 h16.5 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-16.5 z"/>
+<text class="value" x="236.5" y="125.0"><tspan class="strong">84 ms</tspan> · 8.5× faster than dnf5</text>
+<path class="s2" d="M210,132 h171.5 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-171.5 z"/>
+<text class="value" x="391.5" y="145.0">718 ms</text>
+<path class="s3" d="M210,152 h165.2 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-165.2 z"/>
+<text class="value" x="385.2" y="165.0">692 ms</text>
+<text class="label" x="24" y="226.0">Info</text>
+<text class="cmd" x="24" y="242.0">btd info neovim</text>
+<path class="s1" d="M210,200 h14.3 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-14.3 z"/>
+<text class="value" x="234.3" y="213.0"><tspan class="strong">75 ms</tspan> · 9.1× faster than dnf5</text>
+<path class="s2" d="M210,220 h162.7 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-162.7 z"/>
+<text class="value" x="382.7" y="233.0">682 ms</text>
+<path class="s3" d="M210,240 h161.2 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-161.2 z"/>
+<text class="value" x="381.2" y="253.0">676 ms</text>
+<text class="label" x="24" y="314.0">Install, nothing to do</text>
+<text class="cmd" x="24" y="330.0">btd -i bash</text>
+<path class="s1" d="M210,288 h15.1 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-15.1 z"/>
+<text class="value" x="235.1" y="301.0"><tspan class="strong">78 ms</tspan> · 10.8× faster than dnf5</text>
+<path class="s2" d="M210,308 h201.6 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-201.6 z"/>
+<text class="value" x="421.6" y="321.0">841 ms</text>
+<path class="s3" d="M210,328 h386.9 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-386.9 z"/>
+<text class="value" x="606.9" y="341.0">1,599 ms</text>
+</svg>

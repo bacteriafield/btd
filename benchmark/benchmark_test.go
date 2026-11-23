@@ -1,8 +1,10 @@
-// Package benchmark times btd against dnf5 doing the same job. It needs
-// Fedora with dnf5 and network access; elsewhere the benchmarks skip.
+// Package benchmark times btd against dnf5 doing the same job, and checks
+// (compat_test.go) that btd's answers match dnf5's. It needs Fedora with
+// dnf5 and network access; elsewhere everything skips.
 //
 //	make bench          # or: go test -run '^$' -bench . ./benchmark
 //	make docker-bench   # the same in a Fedora container, as root
+//	go test ./benchmark # the compatibility tests
 //
 // -short skips the Copr search, which takes 10-17s on Copr's side.
 package benchmark
@@ -57,13 +59,13 @@ func BenchmarkInstall(b *testing.B) {
 
 // build compiles btd from this checkout, so the benchmark times the code
 // next to it rather than the installed btd.
-func build(b *testing.B) string {
+func build(tb testing.TB) string {
 	if _, err := exec.LookPath("dnf5"); err != nil {
-		b.Skip("dnf5 not found: btd runs on Fedora only")
+		tb.Skip("dnf5 not found: btd runs on Fedora only")
 	}
-	bin := b.TempDir() + "/btd"
-	if out, err := exec.CommandContext(b.Context(), "go", "build", "-buildvcs=false", "-o", bin, "..").CombinedOutput(); err != nil {
-		b.Fatalf("go build: %v\n%s", err, out)
+	bin := tb.TempDir() + "/btd"
+	if out, err := exec.CommandContext(tb.Context(), "go", "build", "-buildvcs=false", "-o", bin, "..").CombinedOutput(); err != nil {
+		tb.Fatalf("go build: %v\n%s", err, out)
 	}
 	return bin
 }

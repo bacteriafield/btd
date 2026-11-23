@@ -19,6 +19,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"iter"
 	"os"
 	"path"
 	"path/filepath"
@@ -35,7 +36,7 @@ import (
 // Sack is the loaded package data.
 type Sack struct {
 	Repos []*Repo
-	DB    *rpmdb.DB // the installed packages
+	db    *rpmdb.DB // the installed packages
 	cfg   *config
 }
 
@@ -46,9 +47,9 @@ type Repo struct {
 	file     *solv.File
 }
 
-// ErrStale means a repository's cache is missing, expired or out of date:
+// errStale means a repository's cache is missing, expired or out of date:
 // dnf5 would download metadata first.
-var ErrStale = errors.New("repository cache needs a refresh")
+var errStale = errors.New("repository cache needs a refresh")
 
 // Load reads the configuration, the rpmdb and the cache of every enabled
 // repository. Any error means the caller should use dnf5 instead.
@@ -75,7 +76,7 @@ func load(db *rpmdb.DB) (*Sack, error) {
 		return nil, ErrUnsupported
 	}
 
-	s := &Sack{DB: db, cfg: cfg, Repos: make([]*Repo, len(cfg.repos))}
+	s := &Sack{db: db, cfg: cfg, Repos: make([]*Repo, len(cfg.repos))}
 	errs := make([]error, len(cfg.repos))
 	var wg sync.WaitGroup
 	for i, rc := range cfg.repos {
@@ -91,10 +92,8 @@ func load(db *rpmdb.DB) (*Sack, error) {
 }
 
 // Option returns a main dnf5 option ("color", ...) as configured, "" if unset.
+// ponytail: the Sack keeps the rpmdb open; btd exits right after its query.
 func (s *Sack) Option(name string) string { return s.cfg.main[name] }
-
-// Close closes the rpmdb.
-func (s *Sack) Close() error { return s.DB.Close() }
 
 // loadRepo finds a usable cache of repository rc: the user's own first,
 // then the system one, as dnf5 does (it clones a fresh system cache).
@@ -129,7 +128,7 @@ func (c *config) loadRepo(rc *repoConfig) (*Repo, error) {
 func openCache(dir string, rc *repoConfig, expire int64, checkAge bool) (*solv.File, error) {
 	repomd, err := os.ReadFile(filepath.Join(dir, "repodata", "repomd.xml"))
 	if err != nil {
-		return nil, ErrStale
+		return nil, errStale
 	}
 	// Modular repositories need module filtering, which btd does not do.
 	if bytes.Contains(repomd, []byte(`type="modules"`)) {
@@ -138,28 +137,28 @@ func openCache(dir string, rc *repoConfig, expire int64, checkAge bool) (*solv.F
 
 	// `dnf clean expire-cache` marks caches expired with this file.
 	if _, err := os.Stat(filepath.Join(dir, "attrs", "expired")); err == nil {
-		return nil, ErrStale
+		return nil, errStale
 	}
 	// The metadata age is the primary file's: dnf5 touches it whenever it
 	// finds the cache still matches the repository.
 	primary, _ := filepath.Glob(filepath.Join(dir, "repodata", "*primary.xml*"))
 	if len(primary) != 1 {
-		return nil, ErrStale
+		return nil, errStale
 	}
 	st, err := os.Stat(primary[0])
 	if err != nil {
-		return nil, ErrStale
+		return nil, errStale
 	}
 	if expire >= 0 && time.Since(st.ModTime()) >= time.Duration(expire)*time.Second {
-		return nil, ErrStale
+		return nil, errStale
 	}
 	if repoFile, err := os.Stat(rc.file); checkAge && err == nil && repoFile.ModTime().After(st.ModTime()) {
-		return nil, ErrStale
+		return nil, errStale
 	}
 
 	data, err := mmap(filepath.Join(dir, "solv", rc.id+".solv"))
 	if err != nil {
-		return nil, ErrStale
+		return nil, errStale
 	}
 	f, err := solv.Parse(data)
 	if err != nil {
@@ -171,7 +170,7 @@ func openCache(dir string, rc *repoConfig, expire int64, checkAge bool) (*solv.F
 	sum := sha256.Sum256(append([]byte("H000"), repomd...))
 	u := f.Userdata
 	if len(u) != 48 || string(u[:8]) != "\x00dnf\x001.0" || !bytes.Equal(u[16:], sum[:]) {
-		return nil, ErrStale
+		return nil, errStale
 	}
 	return f, nil
 }
@@ -220,11 +219,15 @@ func (p Package) isSource() bool {
 	return a == "src" || a == "nosrc"
 }
 
-// packages calls fn with every package of every enabled repository.
-func (s *Sack) packages(fn func(Package)) {
-	for _, r := range s.Repos {
-		for i := range r.file.Solvables {
-			fn(Package{Repo: r, s: &r.file.Solvables[i]})
+// packages iterates over every package of every enabled repository.
+func (s *Sack) packages() iter.Seq[Package] {
+	return func(yield func(Package) bool) {
+		for _, r := range s.Repos {
+			for i := range r.file.Solvables {
+				if !yield(Package{Repo: r, s: &r.file.Solvables[i]}) {
+					return
+				}
+			}
 		}
 	}
 }
@@ -248,15 +251,15 @@ func (s *Sack) Search(terms []string) []Package {
 	}
 
 	best := map[string]Package{}
-	s.packages(func(p Package) {
+	for p := range s.packages() {
 		name := p.Name()
 		if p.isSource() || !match(name) {
-			return
+			continue
 		}
 		if cur, ok := best[name]; !ok || better(p, cur, s.cfg.vars["basearch"]) {
 			best[name] = p
 		}
-	})
+	}
 
 	out := make([]Package, 0, len(best))
 	for _, p := range best {
@@ -297,24 +300,18 @@ func (s *Sack) Provided(spec string) (bool, error) {
 		return false, ErrUnsupported
 	}
 	// Every package provides its own name: check names first, it is cheap.
-	found := false
-	s.packages(func(p Package) {
-		found = found || !p.isSource() && p.Name() == spec
-	})
-	if found {
-		return true, nil
+	for p := range s.packages() {
+		if !p.isSource() && p.Name() == spec {
+			return true, nil
+		}
 	}
-	for _, r := range s.Repos {
-		f := r.file
-		for i := range f.Solvables {
-			sv := &f.Solvables[i]
-			if a := f.Str(sv.Arch); a == "src" || a == "nosrc" {
-				continue
-			}
-			for _, dep := range f.LookupDeps(sv, "solvable:provides") {
-				if f.DepName(dep) == spec {
-					return true, nil
-				}
+	for p := range s.packages() {
+		if p.isSource() {
+			continue
+		}
+		for _, dep := range p.Repo.file.LookupDeps(p.s, "solvable:provides") {
+			if p.Repo.file.DepName(dep) == spec {
+				return true, nil
 			}
 		}
 	}

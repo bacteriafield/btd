@@ -31,7 +31,7 @@ import (
 )
 
 // Id indexes the file's string pool; an Id at or above the number of
-// strings is a relation (see File.Rel), as in libsolv.
+// strings is a relation ("name op evr", see File.DepName), as in libsolv.
 type Id uint32
 
 // Solvable is one package of the repository.
@@ -40,14 +40,6 @@ type Solvable struct {
 
 	schema uint32 // which keys the package has, in storage order
 	off    uint32 // where its key data starts in File.incore
-}
-
-// Rel is a dependency with a version: Name Flags EVR, e.g. "foo >= 1.0".
-// Flags is libsolv's: 1 greater, 2 equal, 4 less; 16 and up are rich
-// dependency operators, where Name and EVR are themselves dependencies.
-type Rel struct {
-	Name, EVR Id
-	Flags     uint8
 }
 
 // File is a parsed .solv file. Nothing changes after Parse, so its methods
@@ -60,7 +52,7 @@ type File struct {
 	strs    []byte   // expanded string pool, strings separated by NUL
 	strOff  []uint32 // strOff[id] is where string id starts in strs
 	numid   uint32   // number of strings; Ids from here on are relations
-	rels    []Rel
+	rels    []rel
 	keys    []key
 	schemas [][]uint32 // schema id -> key indexes
 	incore  []byte     // the incore data blob (a slice of data)
@@ -70,6 +62,15 @@ type File struct {
 	// data starts in the concatenation of all pages.
 	vertOff []uint32
 	pages   []page
+}
+
+// rel is a dependency with a version, "name op evr" (e.g. "foo >= 1.0"),
+// minus the evr, which btd never needs. flags is libsolv's: 1 greater,
+// 2 equal, 4 less; 16 and up are rich dependency operators, where name is
+// itself a dependency.
+type rel struct {
+	name  Id
+	flags uint8
 }
 
 // key is an attribute: a name ("solvable:summary"), how its values are
@@ -82,10 +83,10 @@ type key struct {
 	role    uint8 // which Solvable field it fills while parsing, if any
 }
 
-// Key roles: the attributes decoded for every package while parsing.
+// Key roles: the attributes decoded for every package while parsing; 0 is
+// none.
 const (
-	roleNone uint8 = iota
-	roleName
+	roleName uint8 = iota + 1
 	roleArch
 	roleEVR
 	roleVendor
@@ -153,12 +154,12 @@ var checksumSize = map[keyType]int{
 	typeMD5: 16, typeSHA1: 20, typeSHA224: 28, typeSHA256: 32, typeSHA384: 48, typeSHA512: 64,
 }
 
-// Key storage kinds (libsolv's KEY_STORAGE_*).
+// Key storage kinds (libsolv's KEY_STORAGE_*). The fourth one, a separate
+// id array block, is never written by libsolv 0.7 and is rejected.
 const (
-	storageSolvable     = 1 // old files: same as incore
-	storageIncore       = 2 // in the incore data
-	storageVertical     = 3 // incore holds (offset, length) into the pages
-	storageIDArrayBlock = 4 // in a separate block; libsolv 0.7 never writes it
+	storageSolvable = 1 // old files: same as incore
+	storageIncore   = 2 // in the incore data
+	storageVertical = 3 // incore holds (offset, length) into the pages
 )
 
 // Header flags (libsolv's SOLV_FLAG_*).
@@ -199,9 +200,10 @@ func Parse(data []byte) (*File, error) {
 		numkeys >= 1<<29 || numschemata >= 1<<29 {
 		return nil, errCorrupt
 	}
-	// ponytail: the idarray block is unused since libsolv 0.7 (USE_IDARRAYBLOCK
-	// is undefined in repo_write.c); callers fall back to dnf5 if one shows up.
-	if flags&flagIDArrayBlock != 0 || flags&flagSizeBytes == 0 {
+	// libsolv's writer always prefixes the strings and stores sizes in bytes,
+	// and never writes the idarray block (USE_IDARRAYBLOCK is undefined in
+	// repo_write.c). ponytail: other files make callers fall back to dnf5.
+	if flags&flagIDArrayBlock != 0 || flags&flagSizeBytes == 0 || flags&flagPrefixPool == 0 {
 		return nil, errors.New("solv: unsupported file flags")
 	}
 	f.numid = numid
@@ -211,19 +213,19 @@ func Parse(data []byte) (*File, error) {
 		f.Userdata = r.bytes(int(n))
 	}
 
-	if err := f.readStrings(&r, flags); err != nil {
+	if err := f.readStrings(&r); err != nil {
 		return nil, err
 	}
 
 	// Relations: name, evr and flags; name and evr may point to strings or
 	// to earlier relations (rich dependencies nest).
-	f.rels = make([]Rel, numrel)
+	f.rels = make([]rel, numrel)
 	for i := range f.rels {
 		name, evr := r.id(), r.id()
 		if name >= numid+uint32(i) || evr >= numid+uint32(i) {
 			return nil, errCorrupt
 		}
-		f.rels[i] = Rel{Name: Id(name), EVR: Id(evr), Flags: r.u8()}
+		f.rels[i] = rel{name: Id(name), flags: r.u8()}
 	}
 
 	// Dirs are only used by file lists, which btd does not read; parse
@@ -285,55 +287,40 @@ func Parse(data []byte) (*File, error) {
 	return f, nil
 }
 
-// readStrings expands the string pool. With flagPrefixPool each string is
-// stored as the number of bytes it shares with the previous string plus
-// the rest, NUL-terminated; strings are sorted, so this saves a lot.
-func (f *File) readStrings(r *reader, flags uint32) error {
+// readStrings expands the string pool. Each string is stored as the number
+// of bytes it shares with the previous string plus the rest, NUL-terminated;
+// strings are sorted, so this saves a lot.
+func (f *File) readStrings(r *reader) error {
 	sizeid := r.u32()
 	if sizeid >= 0xf0000000 {
 		return errCorrupt
 	}
-	f.strOff = make([]uint32, f.numid+1)
-	if flags&flagPrefixPool == 0 {
-		f.strs = r.bytes(int(sizeid))
-	} else {
-		packed := r.bytes(int(r.u32()))
-		f.strs = make([]byte, sizeid)
-		dest, prev, p := 0, 0, 0
-		for i := uint32(1); i < f.numid; i++ {
-			if p >= len(packed) {
-				return errCorrupt
-			}
-			same := int(packed[p])
-			p++
-			end := bytes.IndexByte(packed[p:], 0)
-			if end < 0 || dest+same+end+1 > len(f.strs) || same > dest-prev {
-				return errCorrupt
-			}
-			copy(f.strs[dest:], f.strs[prev:prev+same])
-			copy(f.strs[dest+same:], packed[p:p+end+1])
-			p += end + 1
-			f.strOff[i] = uint32(dest)
-			prev = dest
-			dest += same + end + 1
-		}
-		if dest != len(f.strs) {
-			return errCorrupt
-		}
-	}
+	packed := r.bytes(int(r.u32()))
 	if r.err {
 		return errCorrupt
 	}
-	if flags&flagPrefixPool == 0 { // plain pool: find where each string starts
-		off := 0
-		for i := uint32(1); i < f.numid; i++ {
-			f.strOff[i] = uint32(off)
-			end := bytes.IndexByte(f.strs[off:], 0)
-			if end < 0 {
-				return errCorrupt
-			}
-			off += end + 1
+	f.strOff = make([]uint32, f.numid+1)
+	f.strs = make([]byte, sizeid)
+	dest, prev, p := 0, 0, 0
+	for i := uint32(1); i < f.numid; i++ {
+		if p >= len(packed) {
+			return errCorrupt
 		}
+		same := int(packed[p])
+		p++
+		end := bytes.IndexByte(packed[p:], 0)
+		if end < 0 || dest+same+end+1 > len(f.strs) || same > dest-prev {
+			return errCorrupt
+		}
+		copy(f.strs[dest:], f.strs[prev:prev+same])
+		copy(f.strs[dest+same:], packed[p:p+end+1])
+		p += end + 1
+		f.strOff[i] = uint32(dest)
+		prev = dest
+		dest += same + end + 1
+	}
+	if dest != len(f.strs) {
+		return errCorrupt
 	}
 	f.strOff[f.numid] = uint32(len(f.strs))
 	return nil
@@ -508,22 +495,15 @@ func (f *File) Str(id Id) string {
 	return unsafe.String(&f.strs[start], end-start)
 }
 
-// Rel returns the relation id stands for, if it is one.
-func (f *File) Rel(id Id) (Rel, bool) {
-	if uint32(id) < f.numid || uint32(id)-f.numid >= uint32(len(f.rels)) {
-		return Rel{}, false
-	}
-	return f.rels[uint32(id)-f.numid], true
-}
-
 // DepName returns the name a dependency id is about: the string itself, or
 // the name of a "name op evr" relation. Rich dependencies return "".
 func (f *File) DepName(id Id) string {
-	if rel, ok := f.Rel(id); ok {
-		if rel.Flags > 7 {
+	if uint32(id) >= f.numid {
+		i := uint32(id) - f.numid
+		if i >= uint32(len(f.rels)) || f.rels[i].flags > 7 {
 			return ""
 		}
-		id = rel.Name
+		id = f.rels[i].name
 	}
 	return f.Str(id)
 }
@@ -843,10 +823,6 @@ func (r *reader) idArray() []uint32 {
 		if eof {
 			break
 		}
-	}
-	// A trailing 0 terminates the array in libsolv's in-memory form.
-	if n := len(ids); n > 0 && ids[n-1] == 0 {
-		ids = ids[:n-1]
 	}
 	return ids
 }

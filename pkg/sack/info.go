@@ -104,12 +104,12 @@ func (s *Sack) Info(specs []string) (*InfoResult, error) {
 	}
 
 	res := &InfoResult{}
-	hnums, err := s.DB.Find("Name", matchAny)
+	hnums, err := s.db.Find("Name", matchAny)
 	if err != nil {
 		return nil, err
 	}
 	for _, h := range hnums {
-		p, err := s.DB.Package(h)
+		p, err := s.db.Package(h)
 		if err != nil {
 			return nil, err
 		}
@@ -120,11 +120,11 @@ func (s *Sack) Info(specs []string) (*InfoResult, error) {
 	}
 
 	var candidates []Package
-	s.packages(func(p Package) {
+	for p := range s.packages() {
 		if matchAny(p.Name()) {
 			candidates = append(candidates, p)
 		}
-	})
+	}
 
 	for i, spec := range specs {
 		if matched[i] {

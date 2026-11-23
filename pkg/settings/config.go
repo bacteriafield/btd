@@ -75,7 +75,7 @@ func (c *Configuration) Save(path string) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
-	return os.WriteFile(path, append(data, '\n'), 0o644)
+	return os.WriteFile(path, append(data, '\n'), 0o600)
 }
 
 // Debugf prints a debug line to stderr when --debug is on.

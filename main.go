@@ -18,7 +18,8 @@ var (
 	locale = "/usr/share/locale"
 )
 
-func init() {
+// configureLocale loads btd's translations; LOCALE overrides their directory.
+func configureLocale() {
 	if envLocale := os.Getenv("LOCALE"); envLocale != "" {
 		locale = envLocale
 	}
@@ -40,6 +41,7 @@ func language() string {
 }
 
 func main() {
+	configureLocale()
 	os.Exit(run())
 }
 
