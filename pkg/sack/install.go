@@ -38,7 +38,7 @@ func (s *Sack) AlreadyInstalled(names []string) ([]Installed, error) {
 		if name == "" || strings.ContainsAny(name, ".:/*?[]()<>=, \t") {
 			return nil, ErrUnsupported
 		}
-		hnums, err := s.DB.Find("Name", func(key string) bool { return key == name })
+		hnums, err := s.db.Find("Name", func(key string) bool { return key == name })
 		if err != nil {
 			return nil, err
 		}
@@ -46,7 +46,7 @@ func (s *Sack) AlreadyInstalled(names []string) ([]Installed, error) {
 			return nil, ErrUnsupported
 		}
 		for _, h := range hnums {
-			p, err := s.DB.Package(h)
+			p, err := s.db.Package(h)
 			if err != nil {
 				return nil, err
 			}

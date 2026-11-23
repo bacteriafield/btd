@@ -70,8 +70,7 @@ func (db *DB) Find(table string, match func(key string) bool) ([]uint32, error) 
 // Package is an installed package, as read from its header.
 type Package struct {
 	Name, Version, Release, Arch string
-	Epoch                        uint32
-	HasEpoch                     bool
+	Epoch                        uint32 // 0 when the package has none
 	Summary, Description         string
 	URL, License, Vendor         string
 	SourceRPM                    string
@@ -79,19 +78,15 @@ type Package struct {
 	Provides                     []Dep
 }
 
-// Dep is a dependency: Name, and for versioned ones Flags (Less, Greater,
-// Equal) and Version.
+// Dep is a dependency: Name, and for versioned ones Flags (rpm's
+// RPMSENSE_* bits) and Version.
 type Dep struct {
 	Name, Version string
 	Flags         uint32
 }
 
-// rpm's dependency comparison flags (RPMSENSE_*).
-const (
-	Less    = 2
-	Greater = 4
-	Equal   = 8
-)
+// Equal is the flags of an "= version" dependency (RPMSENSE_EQUAL).
+const Equal = 8
 
 // Package reads the package with header number hnum.
 func (db *DB) Package(hnum uint32) (*Package, error) {
@@ -121,7 +116,7 @@ func (db *DB) Package(hnum uint32) (*Package, error) {
 		SourceRPM:   h.str(tagSourceRPM),
 	}
 	if e, ok := h.num(tagEpoch); ok {
-		p.Epoch, p.HasEpoch = uint32(e), true
+		p.Epoch = uint32(e)
 	}
 	// LONGSIZE replaces SIZE for packages of 4 GiB and more.
 	if size, ok := h.num(tagLongSize); ok {
