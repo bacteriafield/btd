@@ -26,3 +26,13 @@ func TestParseSeconds(t *testing.T) {
 		}
 	}
 }
+
+func TestParseStateLine(t *testing.T) {
+	k, v, ok := parseStateLine(`"bash.x86_64" = {reason = "User"}`, "reason")
+	if !ok || k != "bash.x86_64" || v != "User" {
+		t.Errorf("parseStateLine = %q, %q, %v", k, v, ok)
+	}
+	if _, _, ok := parseStateLine(`version = "1.0"`, "reason"); ok {
+		t.Error("non-package line: want false")
+	}
+}

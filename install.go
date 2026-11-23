@@ -122,6 +122,39 @@ func fromCopr(cfg *settings.Configuration, p copr.Project, term string) (target,
 	return target{name: name, copr: p.FullName}, confirmCopr(p.FullName)
 }
 
+// nothingToDo returns true, after printing what dnf5 would, when installing
+// targets from the enabled repositories would change nothing: they are all
+// installed already. That saves the dnf5 run, and the sudo prompt.
+func nothingToDo(cfg *settings.Configuration, targets []target) bool {
+	names := make([]string, len(targets))
+	for i, t := range targets {
+		if t.copr != "" { // enabling the Copr project is a change
+			return false
+		}
+		names[i] = t.name
+	}
+	s := dnf.Native(cfg)
+	if s == nil || len(names) == 0 {
+		return false
+	}
+	pkgs, err := s.AlreadyInstalled(names)
+	if err != nil {
+		cfg.Debugf("running dnf5 install: %v", err)
+		return false
+	}
+
+	// dnf5's resolve log (libdnf5's domain), a blank line, then the
+	// transaction table's verdict (libdnf5-cli's).
+	loc := detectLocale()
+	msg := catalog("libdnf5", loc).Get(`Package "{}" is already installed.`)
+	for _, p := range pkgs {
+		fmt.Fprintln(os.Stderr, strings.Replace(msg, "{}", p.NEVRA(), 1))
+	}
+	fmt.Fprintln(os.Stderr)
+	fmt.Println(newDNF5Translator(loc).cli.Get("Nothing to do."))
+	return true
+}
+
 // confirmCopr asks before enabling a Copr project, which can replace any
 // package on the system once enabled.
 func confirmCopr(project string) error {
@@ -135,6 +168,9 @@ func confirmCopr(project string) error {
 // installTargets enables the Copr projects the targets need, then installs
 // all of them in a single dnf transaction.
 func installTargets(cfg *settings.Configuration, targets []target, flags []string) int {
+	if len(flags) == 0 && nothingToDo(cfg, targets) {
+		return 0
+	}
 	args := append([]string{"install"}, flags...)
 	enabled := map[string]bool{}
 	for _, t := range targets {

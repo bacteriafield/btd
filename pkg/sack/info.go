@@ -1,12 +1,9 @@
 package sack
 
 import (
-	"bufio"
 	"cmp"
 	"fmt"
-	"os"
 	"path"
-	"path/filepath"
 	"slices"
 	"strings"
 
@@ -225,24 +222,17 @@ func (p Installed) NEVRA() string { return p.Name + "-" + p.EVR + "." + p.Arch }
 // lines look like: "bash-5.3.15-2.fc45.x86_64" = {from_repo = "updates"}.
 // A package missing there shows as "<unknown>" in dnf5.
 func (s *Sack) fromRepos(pkgs []Installed) error {
-	want := map[string]int{}
-	for i := range pkgs {
-		pkgs[i].FromRepo = "<unknown>"
-		want[pkgs[i].NEVRA()] = i
-	}
-	f, err := os.Open(filepath.Join(stateDir, "nevras.toml"))
+	repos, err := readState("nevras.toml", "from_repo")
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		nevra, repo, ok := parseStateLine(sc.Text(), "from_repo")
-		if i, wanted := want[nevra]; ok && wanted {
+	for i := range pkgs {
+		pkgs[i].FromRepo = "<unknown>"
+		if repo, ok := repos[pkgs[i].NEVRA()]; ok {
 			pkgs[i].FromRepo = repo
 		}
 	}
-	return sc.Err()
+	return nil
 }
 
 // parseStateLine reads a line of dnf5's state files:
