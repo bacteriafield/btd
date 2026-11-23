@@ -82,3 +82,61 @@ jobs:
               run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --title "btd $GITHUB_REF_NAME" --notes-file CHANGELOG.md
               env:
                   GH_TOKEN: ${{ github.token }}
+
+    # Publishes the release to the bacteriafield/btd Copr project: stamps
+    # btd.spec with the tag's version, builds the SRPM and has Copr build it
+    # for every chroot the project enables.
+    #
+    # Needs the COPR_CONFIG secret: the contents of the copr-cli config from
+    # https://copr.fedorainfracloud.org/api/ (the token expires after 180
+    # days), and "internet access during builds" enabled on the project.
+    copr:
+        needs: release
+        runs-on: ubuntu-latest
+        container: fedora:latest
+        permissions:
+            contents: read
+
+        steps:
+            - name: Install packaging tools
+              # rpm-build: rpmbuild; rpmdevtools: rpmdev-bumpspec, spectool.
+              run: dnf -yq install rpm-build rpmdevtools copr-cli
+
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Read version
+              # v0.0.2 -> 0.0.2. RPM versions cannot contain "-": tag
+              # prereleases as v1.0.0~rc1, not v1.0.0-rc1.
+              run: |
+                  version="${GITHUB_REF_NAME#v}"
+                  case "$version" in
+                      ""|*-*|*[!0-9A-Za-z.+~^_]*)
+                          echo "::error::$GITHUB_REF_NAME is not a valid RPM version"; exit 1 ;;
+                  esac
+                  echo "VERSION=$version" >> "$GITHUB_ENV"
+
+            - name: Set the spec version
+              # Version and Release 1, and a %changelog entry signed like the
+              # spec's latest one.
+              run: |
+                  packager=$(awk '/^%changelog/ { f = 1; next }
+                      f && /^\* / { sub(/^\* [^ ]+ [^ ]+ [^ ]+ [^ ]+ /, ""); sub(/ - [^ ]+$/, ""); print; exit }' btd.spec)
+                  rpmdev-bumpspec -n "$VERSION" -u "$packager" -c "Update to $VERSION" btd.spec
+                  sed -n '/^Version:/p; /^Release:/p; /^%changelog/,$p' btd.spec
+
+            - name: Build SRPM
+              run: |
+                  spectool -g -C rpmbuild/SOURCES btd.spec
+                  rpmbuild -bs --define "_topdir $PWD/rpmbuild" btd.spec
+
+            - name: Submit to Copr
+              # copr-cli waits for the builds and fails if any chroot fails.
+              run: |
+                  if [ -z "$COPR_CONFIG" ]; then
+                      echo "::error::the COPR_CONFIG secret is not set"; exit 1
+                  fi
+                  (umask 077 && printf '%s\n' "$COPR_CONFIG" > "$RUNNER_TEMP/copr")
+                  copr-cli --config "$RUNNER_TEMP/copr" build bacteriafield/btd rpmbuild/SRPMS/*.src.rpm
+              env:
+                  COPR_CONFIG: ${{ secrets.COPR_CONFIG }}

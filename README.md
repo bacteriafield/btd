@@ -267,12 +267,6 @@ requests and pushes to main:
 | test | `go test -race ./...` on Ubuntu |
 | fedora | in a fedora:latest container as root: every test, including the comparisons with dnf5, then the benchmarks, summarized in the job |
 
-Tagging `v<version>` builds the release archive
-([`.github/workflows/build.yml`](.github/workflows/build.yml)).
-
-The Copr project needs "internet access during builds" enabled so the
-spec can download Go modules.
-
 ## Translations
 
 `po/btd.pot` is the template; regenerate it after changing messages:
