@@ -1,4 +1,6 @@
 // Package dnf runs dnf5: queries as the user, transactions as root.
+// Queries are answered from dnf5's cache directly when possible (see
+// package sack), which is several times faster than running dnf5.
 package dnf
 
 import (
@@ -9,9 +11,30 @@ import (
 	"os/signal"
 	"slices"
 	"strings"
+	"sync"
 
+	"github.com/bacteriafield/btd/pkg/sack"
 	"github.com/bacteriafield/btd/pkg/settings"
 )
+
+var (
+	sackOnce   sync.Once
+	nativeSack *sack.Sack
+)
+
+// Native returns dnf5's data read directly, or nil when dnf5 has to be run
+// instead: stale cache, unsupported configuration... It is loaded once.
+func Native(cfg *settings.Configuration) *sack.Sack {
+	sackOnce.Do(func() {
+		s, err := sack.Load()
+		if err != nil {
+			cfg.Debugf("not reading dnf5's cache directly: %v", err)
+			return
+		}
+		nativeSack = s
+	})
+	return nativeSack
+}
 
 // Package is a package available in the enabled repositories.
 type Package struct {
@@ -23,6 +46,14 @@ const queryFormat = "%{name}\t%{evr}\t%{repoid}\t%{summary}\n"
 
 // Search lists the latest available packages whose name contains any term.
 func Search(cfg *settings.Configuration, terms []string) ([]Package, error) {
+	if s := Native(cfg); s != nil {
+		var pkgs []Package
+		for _, p := range s.Search(terms) {
+			pkgs = append(pkgs, Package{Name: p.Name(), EVR: p.EVR(), Repo: p.Repo.ID, Summary: p.Summary()})
+		}
+		return pkgs, nil
+	}
+
 	args := []string{"-q", "repoquery", "--latest-limit=1", "--qf", queryFormat}
 	for _, term := range terms {
 		args = append(args, "*"+term+"*")
@@ -34,6 +65,11 @@ func Search(cfg *settings.Configuration, terms []string) ([]Package, error) {
 // Provided reports whether an enabled repository provides spec, which covers
 // package names and capabilities such as pkgconfig(gtk4).
 func Provided(cfg *settings.Configuration, spec string) (bool, error) {
+	if s := Native(cfg); s != nil {
+		if ok, err := s.Provided(spec); !errors.Is(err, sack.ErrUnsupported) {
+			return ok, err
+		}
+	}
 	out, err := query(cfg, "-q", "repoquery", "--whatprovides", spec, "--qf", "%{name}\n")
 	return strings.TrimSpace(out) != "", err
 }

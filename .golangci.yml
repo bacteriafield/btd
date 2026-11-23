@@ -48,6 +48,12 @@ linters:
       - linters:
           - gosec
         text: G204
+      # Binary file parsers convert between integer widths on purpose,
+      # with the bounds checked by the parser.
+      - linters:
+          - gosec
+        path: pkg/(solv|rpmdb)/
+        text: G115
 formatters:
   enable:
     - gofmt
