@@ -61,7 +61,7 @@ func build(b *testing.B) string {
 		b.Skip("dnf5 not found: btd runs on Fedora only")
 	}
 	bin := b.TempDir() + "/btd"
-	if out, err := exec.CommandContext(b.Context(), "go", "build", "-o", bin, "..").CombinedOutput(); err != nil {
+	if out, err := exec.CommandContext(b.Context(), "go", "build", "-buildvcs=false", "-o", bin, "..").CombinedOutput(); err != nil {
 		b.Fatalf("go build: %v\n%s", err, out)
 	}
 	return bin
