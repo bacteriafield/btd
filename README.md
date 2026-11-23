@@ -68,10 +68,13 @@ btd --save --no-bottom-up --sudo-bin run0
   install from Copr unattended, name the project: `owner/project/pkg`.
 - **One transaction.** Copr projects are enabled first, then all targets
   go to a single `dnf install`.
-- **Reads go through `dnf5 repoquery --qf`, writes through dnf5.** btd
-  never kills dnf; Ctrl+C reaches dnf from the terminal and btd keeps
-  dnf's exit code. The dnf5daemon D-Bus API is the upgrade path if
-  repoquery gets too slow.
+- **Reads come from dnf5's own cache, writes go through dnf5.** btd reads
+  the solv files dnf5 keeps in `/var/cache/libdnf5` and the rpmdb itself,
+  several times faster than starting dnf5. When a cache is stale or the
+  configuration uses something btd does not model (excludes, modules,
+  versionlock), it runs dnf5 instead, which also refreshes the cache;
+  `--debug` says why. btd never kills dnf; Ctrl+C reaches dnf from the
+  terminal and btd keeps dnf's exit code.
 - **Copr results** are projects built for this system's chroot
   (`fedora-<release>-<arch>`), ranked by exact name, then name containing
   the term. Copr's search API takes 10-17s, so it runs alongside dnf.
