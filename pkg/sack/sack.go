@@ -90,6 +90,9 @@ func load(db *rpmdb.DB) (*Sack, error) {
 	return s, nil
 }
 
+// Option returns a main dnf5 option ("color", ...) as configured, "" if unset.
+func (s *Sack) Option(name string) string { return s.cfg.main[name] }
+
 // Close closes the rpmdb.
 func (s *Sack) Close() error { return s.DB.Close() }
 

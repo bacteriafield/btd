@@ -74,6 +74,12 @@ func handleCmd(cfg *settings.Configuration, args []string) int {
 		return 0
 	}
 
+	if (cmd == "info" || cmd == "if") && len(rest) > 0 {
+		if code, ok := nativeInfo(cfg, rest); ok {
+			return code
+		}
+	}
+
 	if dnfCommands[cmd] || strings.HasPrefix(cmd, "-") {
 		return exitCode(dnf.Run(cfg, needsRoot(args), args...))
 	}
