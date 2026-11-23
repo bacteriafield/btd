@@ -1,0 +1,88 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+
+            - uses: actions/setup-go@v7
+              with:
+                  go-version-file: go.mod
+
+            - name: gofmt
+              run: |
+                  unformatted=$(gofmt -l .)
+                  if [ -n "$unformatted" ]; then
+                      echo "not gofmt-formatted:"; echo "$unformatted"; exit 1
+                  fi
+
+            - name: go vet
+              run: go vet ./...
+
+            - uses: golangci/golangci-lint-action@v9
+              with:
+                  version: v2.15
+
+    # Unit tests run anywhere; the ones that need dnf5's cache or an rpmdb skip.
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+
+            - uses: actions/setup-go@v7
+              with:
+                  go-version-file: go.mod
+
+            - name: Test
+              run: go test -race ./...
+
+    # On Fedora, as root, every test runs: the solv and rpmdb readers on the
+    # real cache and database, the comparisons of btd's answers with dnf5's
+    # (benchmark/compat_test.go), and the benchmarks against dnf5.
+    fedora:
+        runs-on: ubuntu-latest
+        container: fedora:latest
+        env:
+            # The checkout belongs to another user in the container, so git
+            # cannot stamp the build.
+            GOFLAGS: -buildvcs=false
+        steps:
+            - name: Install Go and fill dnf5's metadata cache
+              run: dnf -yq install golang && dnf5 -q makecache
+
+            - uses: actions/checkout@v7
+
+            - name: Test
+              run: go test -race -v ./...
+
+            - name: Benchmark against dnf5
+              run: go test -run '^$' -bench . -benchtime 5x -short ./benchmark | tee bench.txt
+
+            - name: Benchmark summary
+              run: |
+                  awk '
+                  /^Benchmark/ {
+                      split($1, p, "/"); name = substr(p[1], 10); tool = p[2]; sub(/-[0-9]+$/, "", tool)
+                      if (!(name in seen)) { seen[name] = 1; order[++n] = name }
+                      ms[name, tool] = $3 / 1e6
+                  }
+                  END {
+                      print "| Benchmark | dnf5 | btd | Speedup |"
+                      print "|---|---:|---:|---:|"
+                      for (i = 1; i <= n; i++) {
+                          k = order[i]
+                          if (ms[k, "btd"] > 0)
+                              printf "| %s | %.0f ms | %.0f ms | %.1fx |\n", k, ms[k, "dnf5"], ms[k, "btd"], ms[k, "dnf5"] / ms[k, "btd"]
+                      }
+                  }' bench.txt >> "$GITHUB_STEP_SUMMARY"

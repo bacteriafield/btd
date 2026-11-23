@@ -2,6 +2,7 @@
 package copr
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -73,7 +74,7 @@ func get(cfg *settings.Configuration, path string, v any) error {
 	u := strings.TrimSuffix(cfg.CoprURL, "/") + path
 	cfg.Debugf("GET %s", u)
 
-	req, err := http.NewRequest(http.MethodGet, u, nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, u, http.NoBody)
 	if err != nil {
 		return err
 	}
@@ -109,7 +110,7 @@ func chroot() (string, error) {
 		return "", errors.New(gotext.Get("unsupported system: no REDHAT_SUPPORT_PRODUCT_VERSION in /etc/os-release"))
 	}
 
-	arch, err := exec.Command("uname", "-m").Output()
+	arch, err := exec.CommandContext(context.Background(), "uname", "-m").Output()
 	if err != nil {
 		return "", err
 	}

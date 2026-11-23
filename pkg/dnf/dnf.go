@@ -4,6 +4,7 @@
 package dnf
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -76,7 +77,7 @@ func Provided(cfg *settings.Configuration, spec string) (bool, error) {
 
 func query(cfg *settings.Configuration, args ...string) (string, error) {
 	cfg.Debugf("%s %s", cfg.DnfBin, strings.Join(args, " "))
-	out, err := exec.Command(cfg.DnfBin, args...).Output()
+	out, err := exec.CommandContext(context.Background(), cfg.DnfBin, args...).Output()
 	if exitErr, ok := errors.AsType[*exec.ExitError](err); ok {
 		err = fmt.Errorf("%s: %s", cfg.DnfBin, strings.TrimSpace(string(exitErr.Stderr)))
 	}
@@ -116,13 +117,13 @@ func Run(cfg *settings.Configuration, root bool, args ...string) error {
 	}
 	cfg.Debugf("%s %s", name, strings.Join(argv, " "))
 
-	// No exec.CommandContext: killing dnf mid-transaction can break the rpmdb.
-	// dnf gets the terminal's Ctrl+C itself; btd just waits for it to exit.
+	// The context is never canceled: killing dnf mid-transaction can break
+	// the rpmdb. dnf gets the terminal's Ctrl+C itself; btd just waits for it.
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
 	defer signal.Stop(sig)
 
-	cmd := exec.Command(name, argv...)
+	cmd := exec.CommandContext(context.Background(), name, argv...)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 	return cmd.Run()
 }

@@ -109,11 +109,11 @@ func parseFlags(args []string, cfg *settings.Configuration) ([]string, error) {
 
 		if p, ok := strFlags[name]; ok {
 			if !hasValue {
-				if i+1 == len(args) {
+				i++
+				if i >= len(args) {
 					return nil, errors.New(gotext.Get("flag %s requires a value", name))
 				}
-				i++
-				value = args[i]
+				value = args[i] //nolint:gosec // G602 false positive: i < len(args) checked above
 			}
 			*p = value
 			continue

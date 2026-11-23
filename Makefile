@@ -10,7 +10,7 @@ LDFLAGS := -X main.locale=$(LOCALEDIR) $(if $(VERSION),-X main.btdVersion=$(VERS
 LANGS   := $(basename $(notdir $(wildcard po/*.po)))
 GOBUILD := go build -trimpath -ldflags "$(LDFLAGS)" -o btd .
 
-.PHONY: build test bench install uninstall pot docker docker-run docker-bench clean
+.PHONY: build test bench install uninstall pot docker docker-run docker-bench docker-test clean
 
 build:
 	$(GOBUILD)
@@ -52,6 +52,12 @@ docker-run: docker
 docker-bench:
 	docker run --rm -v "$(CURDIR)":/src:ro -w /src fedora:latest \
 		bash -c 'dnf -yq install golang make && make bench BENCHFLAGS="$(BENCHFLAGS)"'
+
+## go test in a Fedora container, as root, so the tests that compare btd
+## with dnf5 run too (elsewhere they skip).
+docker-test:
+	docker run --rm -v "$(CURDIR)":/src:ro -w /src -e GOFLAGS=-buildvcs=false fedora:latest \
+		bash -c 'dnf -yq install golang && dnf5 -q makecache && go test ./...'
 
 clean:
 	rm -f btd po/*.mo

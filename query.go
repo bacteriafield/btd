@@ -45,14 +45,14 @@ func results(cfg *settings.Configuration, terms []string) ([]result, error) {
 	}
 	var res []result
 	for _, p := range pkgs {
-		res = append(res, result{Item: menu.Item{Source: p.Repo, Name: p.Name, Version: p.EVR, Description: p.Summary}})
+		res = append(res, result{Source: p.Repo, Name: p.Name, Version: p.EVR, Description: p.Summary})
 	}
 
 	if coprErr != nil {
 		warn(gotext.Get("Copr search failed, showing the enabled repositories only: %s", coprErr))
 	}
 	for _, p := range projects {
-		res = append(res, result{Item: menu.Item{Source: "copr:" + p.FullName, Description: firstLine(p.Description)}, copr: &p})
+		res = append(res, result{Source: "copr:" + p.FullName, Description: firstLine(p.Description), copr: &p})
 	}
 
 	rank(res, query)
