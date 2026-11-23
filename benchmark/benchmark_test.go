@@ -35,7 +35,8 @@ func BenchmarkSearch(b *testing.B) {
 	})
 }
 
-// BenchmarkPassthrough is btd's own overhead: it hands info to dnf5 as is.
+// BenchmarkPassthrough is a dnf5 command btd used to hand to dnf5 as is;
+// btd now answers info from dnf5's cache, with dnf5's output.
 func BenchmarkPassthrough(b *testing.B) {
 	btd := build(b)
 	b.Run("dnf5", func(b *testing.B) { bench(b, "dnf5", "info", term) })
