@@ -26,4 +26,4 @@ assignees: ""
 
 ### Helps us
 
-Provide evidence of the bug (images, logs, errors, videos, etc.). This will help us identify the potential issue.
+[Provide evidence of the bug (images, logs, errors, videos, etc.). This will help us identify the potential issue.](../../SECURITY.md)
