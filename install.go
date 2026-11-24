@@ -25,7 +25,6 @@ func install(cfg *settings.Configuration, args []string) int {
 	var targets []target
 	var flags []string
 	for _, arg := range args {
-		// ponytail: dnf options need the --opt=value form; a separate value is taken as a target
 		if strings.HasPrefix(arg, "-") {
 			flags = append(flags, arg)
 			continue

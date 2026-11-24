@@ -36,3 +36,4 @@ go.work.sum
 /btd
 btd
 po/*.mo
+*.txt
