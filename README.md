@@ -62,8 +62,8 @@ btd neovim                    # search, then pick numbers to install: 1 3 2-4
 btd -s neovim                 # search only
 btd info neovim               # dnf5 info, answered from the cache
 btd -i obs-studio -y          # install, falling back to Copr
-btd -i owner/project/pkg      # install pkg from that Copr project
-btd -u / btd -r pkg           # upgrade / remove
+btd -i <owner/project/pkg>    # install pkg from that Copr project
+btd -u / btd -r <pkg>         # upgrade / remove
 btd list --installed          # any other dnf5 command is passed through
 ```
 
