@@ -1,0 +1,22 @@
+/* btd colors on top of the default theme.
+   Every variable is listed in vitepress/theme/styles/vars.css.
+   brand-1 colors links, brand-3 is the button background and brand-2 its
+   hover, so each keeps white button text readable. */
+
+:root {
+  /* Fedora blues. */
+  --vp-c-brand-1: #294172;
+  --vp-c-brand-2: #345a96;
+  --vp-c-brand-3: #3c6eb4;
+
+  /* Gradient on the big "btd" in the hero, like vitepress.dev's. */
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #3c6eb4 30%, #51a2da);
+}
+
+.dark {
+  /* Lighter link color so it stays readable on the dark background. */
+  --vp-c-brand-1: #8cc4ef;
+  --vp-c-brand-2: #4f7fc4;
+  --vp-c-brand-3: #3c6eb4;
+}
