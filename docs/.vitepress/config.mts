@@ -6,8 +6,8 @@ const repo = 'https://github.com/bacteriafield/btd'
 export default defineConfig({
   title: 'btd',
   description: 'Better Than DNF: an RPM helper that answers dnf5 queries 9x faster',
-  // ponytail: no `base`; set base: '/btd/' if this gets served from
-  // GitHub Pages at bacteriafield.github.io/btd.
+  // No `base` here: .github/workflows/pages.yml passes the one GitHub
+  // Pages serves the site under with --base, so local dev stays at '/'.
 
   // https://vitepress.dev/reference/default-theme-config
   themeConfig: {

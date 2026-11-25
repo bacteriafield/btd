@@ -1,0 +1,60 @@
+name: Deploy site
+
+on:
+    push:
+        branches:
+            - main
+    # Run it by hand from the Actions tab, e.g. for the first deploy.
+    workflow_dispatch:
+
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+
+# One deploy at a time; a newer push cancels the one still running.
+concurrency:
+    group: pages
+    cancel-in-progress: true
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+
+            - name: Install dependencies
+              run: bun install --frozen-lockfile
+
+            # base_path is the path part of the site's URL: "/btd" on
+            # <owner>.github.io/btd, "" on a custom domain. Reading it here
+            # means the site keeps working if the URL changes.
+            - name: Configure Pages
+              id: pages
+              uses: actions/configure-pages@v5
+
+            # --bun runs vitepress on bun instead of the runner's node.
+            - name: Build VitePress
+              run: bun --bun run docs:build --base "${{ steps.pages.outputs.base_path }}/"
+
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v4
+              with:
+                  path: docs/.vitepress/dist
+
+    deploy:
+        needs: build
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
