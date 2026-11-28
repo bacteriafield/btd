@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/bacteriafield/btd/actions/workflows/ci.yml/badge.svg)](https://github.com/bacteriafield/btd/actions/workflows/ci.yml)
 [![Copr build status](https://copr.fedorainfracloud.org/coprs/bacteriafield/btd/package/btd/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/bacteriafield/btd/package/btd/)
+[![Release](https://img.shields.io/github/v/release/bacteriafield/btd)](https://github.com/bacteriafield/btd/releases/latest)
 
 BTD (Better Than DNF) - An RPM helper
 
