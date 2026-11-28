@@ -14,8 +14,10 @@ URL:            https://github.com/bacteriafield/btd
 # The GitHub archive of tag v<version>; it unpacks to btd-<version>/.
 Source:         %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 
-# go.mod requires go 1.27.
-BuildRequires:  golang >= 1.27
+# go.mod requires go 1.27, newer than Fedora 44's golang (1.26): %build sets
+# GOTOOLCHAIN=auto, so go downloads the toolchain go.mod names. 1.21 is the
+# first go that can.
+BuildRequires:  golang >= 1.21
 # msgfmt compiles the translations in po/ into .mo catalogs.
 BuildRequires:  gettext
 BuildRequires:  make
@@ -54,6 +56,10 @@ libsolv nor librpm.
 %build
 # Modules come from the Go proxy, which is why Copr needs network access.
 export GOPROXY=https://proxy.golang.org,direct
+# Fedora's go.env sets GOTOOLCHAIN=local; auto builds with go.mod's toolchain
+# line (go1.27.2, verified against sum.golang.org), whatever golang the
+# chroot has.
+export GOTOOLCHAIN=auto
 export GOFLAGS=-buildmode=pie
 # PREFIX sets where btd looks for its translations (main.locale), VERSION
 # what btd --version prints (main.btdVersion).
